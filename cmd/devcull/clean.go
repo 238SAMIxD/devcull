@@ -26,11 +26,13 @@ var cleanCmd = &cobra.Command{
 			&cleaner.CargoCleaner{},
 
 			&cleaner.BrewCleaner{},
-
+			
+			&cleaner.PipCleaner{},
 			&cleaner.UvCleaner{},
+			&cleaner.PoetryCleaner{},
 
 			&cleaner.DockerCleaner{},
-			
+
 			&cleaner.BunCleaner{},
 			&cleaner.DenoCleaner{},
 		}
