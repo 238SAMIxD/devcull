@@ -20,6 +20,8 @@ var cleanCmd = &cobra.Command{
 		allCleaners := []cleaner.Cleaner{
 			&cleaner.PnpmCleaner{},
 			&cleaner.BrewCleaner{},
+			&cleaner.UvCleaner{},
+			&cleaner.DockerCleaner{},
 		}
 
 		var activeCleaners []cleaner.Cleaner
