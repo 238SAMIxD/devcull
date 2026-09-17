@@ -11,3 +11,27 @@ type Cleaner interface {
 	EstimateReclaimable() (int64, error)
 	Clean(dryRun bool) (int64, error)
 }
+
+func All() []Cleaner {
+	return []Cleaner{
+			&NvmCleaner{},
+			
+			&NpmCleaner{},
+			&PnpmCleaner{},
+			&YarnCleaner{},
+
+		 	&GoCleaner{},
+			&CargoCleaner{},
+
+			&BrewCleaner{},
+			
+			&PipCleaner{},
+			&UvCleaner{},
+			&PoetryCleaner{},
+
+			&DockerCleaner{},
+
+			&BunCleaner{},
+			&DenoCleaner{},
+		}
+}

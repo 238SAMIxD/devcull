@@ -17,27 +17,7 @@ var cleanCmd = &cobra.Command{
 	Use:   "clean [tool...]",
 	Short: "Run the cleaners (optionally specify which tools to clean)",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		allCleaners := []cleaner.Cleaner{
-			&cleaner.NvmCleaner{},
-			
-			&cleaner.NpmCleaner{},
-			&cleaner.PnpmCleaner{},
-			&cleaner.YarnCleaner{},
-
-			&cleaner.GoCleaner{},
-			&cleaner.CargoCleaner{},
-
-			&cleaner.BrewCleaner{},
-			
-			&cleaner.PipCleaner{},
-			&cleaner.UvCleaner{},
-			&cleaner.PoetryCleaner{},
-
-			&cleaner.DockerCleaner{},
-
-			&cleaner.BunCleaner{},
-			&cleaner.DenoCleaner{},
-		}
+		allCleaners := cleaner.All()
 
 		var activeCleaners []cleaner.Cleaner
 		if len(args) > 0 {
