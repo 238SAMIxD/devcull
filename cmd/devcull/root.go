@@ -17,9 +17,7 @@ var rootCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cleaners := []cleaner.Cleaner{
 			&cleaner.PnpmCleaner{},
-			// Future tools go here:
-			// &cleaner.BrewCleaner{},
-			// &cleaner.UvCleaner{},
+			&cleaner.BrewCleaner{},
 		}
 
 		results := engine.Run(cleaners, dryRun)
