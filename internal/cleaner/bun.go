@@ -12,8 +12,8 @@ func (b *BunCleaner) Name() string {
 	return "Bun"
 }
 
-func (b *BunCleaner) Category() string {
-	return "Runtimes"
+func (b *BunCleaner) Category() Category {
+	return CategoryNode
 }
 
 func (b *BunCleaner) IsInstalled() bool {

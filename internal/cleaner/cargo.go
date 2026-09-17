@@ -12,8 +12,8 @@ func (c *CargoCleaner) Name() string {
 	return "Cargo"
 }
 
-func (c *CargoCleaner) Category() string {
-	return "Package Managers"
+func (c *CargoCleaner) Category() Category {
+	return CategoryRust
 }
 
 func (c *CargoCleaner) IsInstalled() bool {

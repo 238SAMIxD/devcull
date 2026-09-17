@@ -11,8 +11,8 @@ func (y *YarnCleaner) Name() string {
 	return "Yarn"
 }
 
-func (y *YarnCleaner) Category() string {
-	return "Package Managers"
+func (y *YarnCleaner) Category() Category {
+	return CategoryNode
 }
 
 func (y *YarnCleaner) IsInstalled() bool {

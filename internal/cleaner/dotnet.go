@@ -11,8 +11,8 @@ func (d *DotnetCleaner) Name() string {
 	return "Dotnet"
 }
 
-func (d *DotnetCleaner) Category() string {
-	return "Languages"
+func (d *DotnetCleaner) Category() Category {
+	return CategoryDotnet
 }
 
 func (d *DotnetCleaner) IsInstalled() bool {

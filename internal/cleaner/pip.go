@@ -13,8 +13,8 @@ func (p *PipCleaner) Name() string {
 	return "pip"
 }
 
-func (p *PipCleaner) Category() string {
-	return "Package Managers"
+func (p *PipCleaner) Category() Category {
+	return CategoryPython
 }
 
 func (p *PipCleaner) getCmd() string {

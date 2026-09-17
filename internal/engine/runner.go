@@ -14,7 +14,7 @@ type Result struct {
 
 type ScanResult struct {
 	CleanerName string
-	Category    string
+	Category    cleaner.Category
 	Reclaimable int64
 	Err         error
 }

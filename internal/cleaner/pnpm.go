@@ -11,8 +11,8 @@ func (p *PnpmCleaner) Name() string {
 	return "pnpm"
 }
 
-func (p *PnpmCleaner) Category() string {
-	return "Package Managers"
+func (p *PnpmCleaner) Category() Category {
+	return CategoryNode
 }
 
 func (p *PnpmCleaner) IsInstalled() bool {

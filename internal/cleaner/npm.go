@@ -11,8 +11,8 @@ func (n *NpmCleaner) Name() string {
 	return "npm"
 }
 
-func (n *NpmCleaner) Category() string {
-	return "Package Managers"
+func (n *NpmCleaner) Category() Category {
+	return CategoryNode
 }
 
 func (n *NpmCleaner) IsInstalled() bool {

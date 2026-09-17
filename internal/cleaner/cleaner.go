@@ -6,59 +6,68 @@ import (
 	"strings"
 )
 
-// Cleaner defines a tool whose caches can be scanned and cleaned.
-// Callers must check IsInstalled() before calling EstimateReclaimable() or Clean().
+
+
+type Category string
+
+const (
+	CategoryNode   Category = "Node"
+	CategoryPython Category = "Python"
+	CategoryJava   Category = "Java"
+	CategoryDotnet Category = ".NET"
+	CategoryGo     Category = "Go"
+	CategoryRust   Category = "Rust"
+	CategoryApple  Category = "Apple Ecosystem"
+	CategorySystem Category = "System & DevOps"
+)
+
+func AllCategories() []Category {
+	return []Category{
+		CategoryNode,
+		CategoryPython,
+		CategoryJava,
+		CategoryDotnet,
+		CategoryGo,
+		CategoryRust,
+		CategoryApple,
+		CategorySystem,
+	}
+}
+
 type Cleaner interface {
 	Name() string
-	Category() string
+	Category() Category
 	IsInstalled() bool
 	EstimateReclaimable() (int64, error)
 	Clean(dryRun bool) (int64, error)
 }
 
-func ResolveAlias(name string) string {
-	switch strings.ToLower(name) {
-	case "brew":
-		return "homebrew"
-	case "python", "python3", "pip3":
-		return "pip"
-	case "node", "nodejs":
-		return "npm"
-	case "rust":
-		return "cargo"
-	case "golang":
-		return "go"
-	case "mac", "apple", "ios", "macos":
-		return "cocoapods"
-	case "cs", "c#", "csharp", ".net", "nuget":
-		return "dotnet"
-	default:
-		return strings.ToLower(name)
-	}
-}
-
 func All() []Cleaner {
 	return []Cleaner{
+			// Node.js
 			&NvmCleaner{},
-			
 			&NpmCleaner{},
 			&PnpmCleaner{},
 			&YarnCleaner{},
+			&BunCleaner{},
+			&DenoCleaner{},
 
-		 	&GoCleaner{},
+		 	// Go
+			&GoCleaner{},
+
+			// Rust
 			&CargoCleaner{},
 
+			// System
 			&BrewCleaner{},
+			&DockerCleaner{},
 			
+			// Python
 			&PipCleaner{},
 			&UvCleaner{},
 			&PoetryCleaner{},
 
-			&DockerCleaner{},
-
-			&BunCleaner{},
-			&DenoCleaner{},
-
+			// .NET
 			&DotnetCleaner{},
 		}
 }
@@ -79,3 +88,37 @@ func dirSize(path string) (int64, error) {
 	})
 	return size, err
 }
+
+func MatchesArg(cleaner Cleaner, arg string) bool {
+	argLower := strings.ToLower(strings.TrimSpace(arg))
+	nameLower := strings.ToLower(cleaner.Name())
+	catLower := strings.ToLower(string(cleaner.Category()))
+
+	if nameLower == argLower {
+		return true
+	}
+
+	if catLower == argLower || strings.Contains(catLower, argLower) {
+		return true
+	}
+
+	switch argLower {
+	case "brew", "macos":
+		return nameLower == "homebrew"
+	case "py", "python3":
+		return cleaner.Category() == CategoryPython
+	case "node", "nodejs", "js", "ts", "javascript":
+		return cleaner.Category() == CategoryNode
+	case "java", "jvm":
+		return cleaner.Category() == CategoryJava
+	case "cs", "c#", "csharp", ".net", "nuget":
+		return cleaner.Category() == CategoryDotnet
+	case "golang":
+		return cleaner.Category() == CategoryGo
+	case "mac", "apple", "ios":
+		return nameLower == "cocoapods" || cleaner.Category() == CategoryApple
+	}
+
+	return false
+}
+

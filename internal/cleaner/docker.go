@@ -13,8 +13,8 @@ func (d *DockerCleaner) Name() string {
 	return "Docker"
 }
 
-func (d *DockerCleaner) Category() string {
-	return "Containers"
+func (d *DockerCleaner) Category() Category {
+	return CategorySystem
 }
 
 func (d *DockerCleaner) IsInstalled() bool {

@@ -11,8 +11,8 @@ func (g *GoCleaner) Name() string {
 	return "Go"
 }
 
-func (g *GoCleaner) Category() string {
-	return "Languages"
+func (g *GoCleaner) Category() Category {
+	return CategoryGo
 }
 
 func (g *GoCleaner) IsInstalled() bool {

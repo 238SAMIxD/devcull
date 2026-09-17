@@ -12,8 +12,8 @@ func (d *DenoCleaner) Name() string {
 	return "Deno"
 }
 
-func (d *DenoCleaner) Category() string {
-	return "Runtimes"
+func (d *DenoCleaner) Category() Category {
+	return CategoryNode
 }
 
 func (d *DenoCleaner) IsInstalled() bool {

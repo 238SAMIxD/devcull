@@ -12,8 +12,8 @@ func (p *PoetryCleaner) Name() string {
 	return "Poetry"
 }
 
-func (p *PoetryCleaner) Category() string {
-	return "Package Managers"
+func (p *PoetryCleaner) Category() Category {
+	return CategoryPython
 }
 
 func (p *PoetryCleaner) IsInstalled() bool {

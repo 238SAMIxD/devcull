@@ -11,8 +11,9 @@ func (u *UvCleaner) Name() string {
 	return "uv"
 }
 
-func (u *UvCleaner) Category() string {
-	return "Package Managers"
+
+func (u *UvCleaner) Category() Category {
+	return CategoryPython
 }
 
 func (u *UvCleaner) IsInstalled() bool {

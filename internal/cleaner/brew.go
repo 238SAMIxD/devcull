@@ -11,8 +11,8 @@ func (b *BrewCleaner) Name() string {
 	return "Homebrew"
 }
 
-func (b *BrewCleaner) Category() string {
-	return "Package Managers"
+func (b *BrewCleaner) Category() Category {
+	return CategorySystem
 }
 
 func (b *BrewCleaner) IsInstalled() bool {

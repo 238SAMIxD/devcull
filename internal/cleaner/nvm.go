@@ -11,8 +11,8 @@ func (n *NvmCleaner) Name() string {
 	return "nvm"
 }
 
-func (n *NvmCleaner) Category() string {
-	return "Version Managers"
+func (n *NvmCleaner) Category() Category {
+	return CategoryNode
 }
 
 func (n *NvmCleaner) IsInstalled() bool {

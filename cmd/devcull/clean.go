@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/238SAMIxD/devcull/internal/cleaner"
 	"github.com/238SAMIxD/devcull/internal/engine"
@@ -21,19 +20,18 @@ var cleanCmd = &cobra.Command{
 		
 		var activeCleaners []cleaner.Cleaner
 		if len(args) > 0 {
-			requested := make(map[string]bool)
-			for _, arg := range args {
-				requested[cleaner.ResolveAlias(arg)] = true
-			}
-
+			// Check every cleaner against every provided argument
 			for _, c := range allCleaners {
-				if requested[strings.ToLower(c.Name())] {
-					activeCleaners = append(activeCleaners, c)
+				for _, arg := range args {
+					if cleaner.MatchesArg(c, arg) {
+						activeCleaners = append(activeCleaners, c)
+						break // Move to the next cleaner so we don't add duplicates
+					}
 				}
 			}
 
 			if len(activeCleaners) == 0 {
-				fmt.Println("No matching tools found for the provided arguments.")
+				fmt.Println("No matching tools or categories found for the provided arguments.")
 				return nil
 			}
 		} else {

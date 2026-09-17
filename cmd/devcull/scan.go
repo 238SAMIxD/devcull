@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/238SAMIxD/devcull/internal/cleaner"
 	"github.com/238SAMIxD/devcull/internal/engine"
@@ -18,19 +17,17 @@ var scanCmd = &cobra.Command{
 
 		var activeCleaners []cleaner.Cleaner
 		if len(args) > 0 {
-			requested := make(map[string]bool)
-			for _, arg := range args {
-				requested[cleaner.ResolveAlias(arg)] = true
-			}
-
 			for _, c := range allCleaners {
-				if requested[strings.ToLower(c.Name())] {
-					activeCleaners = append(activeCleaners, c)
+				for _, arg := range args {
+					if cleaner.MatchesArg(c, arg) {
+						activeCleaners = append(activeCleaners, c)
+						break
+					}
 				}
 			}
 
 			if len(activeCleaners) == 0 {
-				fmt.Println("No matching tools found for the provided arguments.")
+				fmt.Println("No matching tools or categories found for the provided arguments.")
 				return nil
 			}
 		} else {
@@ -38,22 +35,44 @@ var scanCmd = &cobra.Command{
 		}
 
 		fmt.Println("🔍 Scanning developer caches...")
-		fmt.Println()
 
 		results := engine.Scan(activeCleaners)
 
+		grouped := make(map[cleaner.Category][]engine.ScanResult)
 		var totalReclaimable int64
+
 		for _, r := range results {
-			if r.Err != nil {
-				fmt.Printf("⚠️  %-12s error: %v\n", r.CleanerName, r.Err)
+			grouped[r.Category] = append(grouped[r.Category], r)
+			if r.Err == nil {
+				totalReclaimable += r.Reclaimable
+			}
+		}
+
+		for _, cat := range cleaner.AllCategories() {
+			catResults, exists := grouped[cat]
+			if !exists || len(catResults) == 0 {
 				continue
 			}
 
-			fmt.Printf("📦 %-12s %s\n", r.CleanerName, ui.FormatBytes(r.Reclaimable))
-			totalReclaimable += r.Reclaimable
+			var catTotal int64
+			for _, r := range catResults {
+				if r.Err == nil {
+					catTotal += r.Reclaimable
+				}
+			}
+
+			fmt.Printf("\n=== %s [%s] ===\n", cat, ui.FormatBytes(catTotal))
+			
+			for _, r := range catResults {
+				if r.Err != nil {
+					fmt.Printf("⚠️  %-12s error: %v\n", r.CleanerName, r.Err)
+					continue
+				}
+				fmt.Printf("📦 %-12s %s\n", r.CleanerName, ui.FormatBytes(r.Reclaimable))
+			}
 		}
 
-		fmt.Printf("\n🎉 Estimated reclaimable space: %s\n", ui.FormatBytes(totalReclaimable))
+		fmt.Printf("\n🎉 Total estimated reclaimable space: %s\n", ui.FormatBytes(totalReclaimable))
 		fmt.Println("Run 'devcull clean' to reclaim this space.")
 
 		return nil
