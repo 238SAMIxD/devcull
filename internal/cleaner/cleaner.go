@@ -69,6 +69,12 @@ func All() []Cleaner {
 
 			// .NET
 			&DotnetCleaner{},
+
+			// Java
+      &MavenCleaner{},
+      &GradleCleaner{},
+      &KotlinCleaner{},
+      &AndroidCleaner{},
 		}
 }
 
