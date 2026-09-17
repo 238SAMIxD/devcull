@@ -1,9 +1,7 @@
 package cleaner
 
 import (
-	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 )
 
@@ -67,21 +65,4 @@ func (p *PnpmCleaner) Clean(dryRun bool) (int64, error) {
 		reclaimed = 0
 	}
 	return reclaimed, nil
-}
-
-func dirSize(path string) (int64, error) {
-	var size int64
-	err := filepath.WalkDir(path, func(_ string, d os.DirEntry, err error) error {
-		if err != nil {
-			return nil
-		}
-		if !d.IsDir() {
-			info, err := d.Info()
-			if err == nil {
-				size += info.Size()
-			}
-		}
-		return nil
-	})
-	return size, err
 }

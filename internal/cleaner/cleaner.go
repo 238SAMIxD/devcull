@@ -2,6 +2,8 @@ package cleaner
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -61,4 +63,21 @@ func All() []Cleaner {
 
 			&DotnetCleaner{},
 		}
+}
+
+func dirSize(path string) (int64, error) {
+	var size int64
+	err := filepath.WalkDir(path, func(_ string, d os.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		if !d.IsDir() {
+			info, err := d.Info()
+			if err == nil {
+				size += info.Size()
+			}
+		}
+		return nil
+	})
+	return size, err
 }
