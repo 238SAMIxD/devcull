@@ -18,6 +18,8 @@ var cleanCmd = &cobra.Command{
 	Short: "Run the cleaners (optionally specify which tools to clean)",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		allCleaners := []cleaner.Cleaner{
+			&cleaner.NvmCleaner{},
+			
 			&cleaner.NpmCleaner{},
 			&cleaner.PnpmCleaner{},
 			&cleaner.YarnCleaner{},
