@@ -22,6 +22,8 @@ var cleanCmd = &cobra.Command{
 			&cleaner.BrewCleaner{},
 			&cleaner.UvCleaner{},
 			&cleaner.DockerCleaner{},
+			&cleaner.NpmCleaner{},
+			&cleaner.CargoCleaner{},
 		}
 
 		var activeCleaners []cleaner.Cleaner
