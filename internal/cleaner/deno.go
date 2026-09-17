@@ -44,10 +44,6 @@ func (d *DenoCleaner) getCachePath() string {
 }
 
 func (d *DenoCleaner) EstimateReclaimable() (int64, error) {
-	if !d.IsInstalled() {
-		return 0, ErrToolNotInstalled
-	}
-
 	path := d.getCachePath()
 	if path == "" {
 		return 0, nil

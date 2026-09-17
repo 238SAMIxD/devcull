@@ -41,10 +41,6 @@ func (g *GoCleaner) getCachePaths() []string {
 }
 
 func (g *GoCleaner) EstimateReclaimable() (int64, error) {
-	if !g.IsInstalled() {
-		return 0, ErrToolNotInstalled
-	}
-
 	var total int64
 	for _, p := range g.getCachePaths() {
 		size, _ := dirSize(p)

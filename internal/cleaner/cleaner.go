@@ -1,15 +1,13 @@
 package cleaner
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
-
-var ErrToolNotInstalled = errors.New("tool not installed")
-
+// Cleaner defines a tool whose caches can be scanned and cleaned.
+// Callers must check IsInstalled() before calling EstimateReclaimable() or Clean().
 type Cleaner interface {
 	Name() string
 	Category() string

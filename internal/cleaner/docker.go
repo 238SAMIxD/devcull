@@ -28,10 +28,6 @@ func (d *DockerCleaner) IsInstalled() bool {
 }
 
 func (d *DockerCleaner) EstimateReclaimable() (int64, error) {
-	if !d.IsInstalled() {
-		return 0, ErrToolNotInstalled
-	}
-
 	out, err := exec.Command("docker", "system", "df", "--format", "{{.Reclaimable}}").Output()
 	if err != nil {
 		return 0, err

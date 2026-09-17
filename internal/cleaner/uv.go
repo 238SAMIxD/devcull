@@ -34,10 +34,6 @@ func (u *UvCleaner) getCachePath() string {
 }
 
 func (u *UvCleaner) EstimateReclaimable() (int64, error) {
-	if !u.IsInstalled() {
-		return 0, ErrToolNotInstalled
-	}
-
 	cachePath := u.getCachePath()
 	if cachePath == "" {
 		return 0, nil

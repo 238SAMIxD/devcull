@@ -34,10 +34,6 @@ func (p *PnpmCleaner) getCachePath() string {
 }
 
 func (p *PnpmCleaner) EstimateReclaimable() (int64, error) {
-	if !p.IsInstalled() {
-		return 0, ErrToolNotInstalled
-	}
-
 	cachePath := p.getCachePath()
 	if cachePath == "" {
 		return 0, nil

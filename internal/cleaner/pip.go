@@ -52,10 +52,6 @@ func (p *PipCleaner) getCachePath() string {
 }
 
 func (p *PipCleaner) EstimateReclaimable() (int64, error) {
-	if !p.IsInstalled() {
-		return 0, ErrToolNotInstalled
-	}
-
 	cachePath := p.getCachePath()
 	if cachePath == "" {
 		return 0, nil

@@ -46,10 +46,6 @@ func (c *CargoCleaner) getCachePaths() []string {
 }
 
 func (c *CargoCleaner) EstimateReclaimable() (int64, error) {
-	if !c.IsInstalled() {
-		return 0, ErrToolNotInstalled
-	}
-
 	paths := c.getCachePaths()
 	var total int64
 	for _, p := range paths {

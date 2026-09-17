@@ -51,10 +51,6 @@ func (d *DotnetCleaner) getCachePaths() []string {
 }
 
 func (d *DotnetCleaner) EstimateReclaimable() (int64, error) {
-	if !d.IsInstalled() {
-		return 0, ErrToolNotInstalled
-	}
-
 	paths := d.getCachePaths()
 	var total int64
 	for _, p := range paths {

@@ -34,10 +34,6 @@ func (y *YarnCleaner) getCachePath() string {
 }
 
 func (y *YarnCleaner) EstimateReclaimable() (int64, error) {
-	if !y.IsInstalled() {
-		return 0, ErrToolNotInstalled
-	}
-
 	cachePath := y.getCachePath()
 	if cachePath == "" {
 		return 0, nil

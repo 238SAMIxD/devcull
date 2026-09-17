@@ -34,10 +34,6 @@ func (b *BrewCleaner) getCachePath() string {
 }
 
 func (b *BrewCleaner) EstimateReclaimable() (int64, error) {
-	if !b.IsInstalled() {
-		return 0, ErrToolNotInstalled
-	}
-
 	cachePath := b.getCachePath()
 	if cachePath == "" {
 		return 0, nil
