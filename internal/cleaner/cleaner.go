@@ -89,6 +89,11 @@ func All() []Cleaner {
 			// Flutter
 			&DartCleaner{},
 			&FvmCleaner{},
+
+			// Apple
+			&CocoaPodsCleaner{},
+			&SwiftPMCleaner{},
+			&XcodeCleaner{},
 		}
 }
 
@@ -133,7 +138,7 @@ func MatchesArg(cleaner Cleaner, arg string) bool {
 		return cleaner.Category() == CategoryCSharp
 	case "golang":
 		return cleaner.Category() == CategoryGo
-	case "mac", "apple", "ios", "macos", "darwin":
+	case "mac", "apple", "ios", "macos", "darwin", "pods":
 		return nameLower == "cocoapods" || cleaner.Category() == CategoryApple
 	case "c", "cpp", "c++":
 		return cleaner.Category() == CategoryCpp
@@ -152,6 +157,10 @@ func MatchesArg(cleaner Cleaner, arg string) bool {
 		return nameLower == "kotlin"
 	case "ue", "ue5", "unreal", "unrealengine":
 		return nameLower == "unreal engine"
+	case "swift", "spm":
+		return nameLower == "swiftpm"
+	case "x-code", "deriveddata", "commandlinetools", "clt", "cmdlinetools":
+		return nameLower == "xcode"
 	}
 
 	return false
