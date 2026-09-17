@@ -18,12 +18,12 @@ var cleanCmd = &cobra.Command{
 	Short: "Run the cleaners (optionally specify which tools to clean)",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		allCleaners := cleaner.All()
-
+		
 		var activeCleaners []cleaner.Cleaner
 		if len(args) > 0 {
 			requested := make(map[string]bool)
 			for _, arg := range args {
-				requested[strings.ToLower(arg)] = true
+				requested[cleaner.ResolveAlias(arg)] = true
 			}
 
 			for _, c := range allCleaners {

@@ -20,7 +20,7 @@ var scanCmd = &cobra.Command{
 		if len(args) > 0 {
 			requested := make(map[string]bool)
 			for _, arg := range args {
-				requested[strings.ToLower(arg)] = true
+				requested[cleaner.ResolveAlias(arg)] = true
 			}
 
 			for _, c := range allCleaners {
