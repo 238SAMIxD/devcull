@@ -30,6 +30,8 @@ func ResolveAlias(name string) string {
 		return "go"
 	case "mac", "apple", "ios", "macos":
 		return "cocoapods"
+	case "cs", "c#", "csharp", ".net", "nuget":
+		return "dotnet"
 	default:
 		return strings.ToLower(name)
 	}
@@ -56,5 +58,7 @@ func All() []Cleaner {
 
 			&BunCleaner{},
 			&DenoCleaner{},
+
+			&DotnetCleaner{},
 		}
 }
