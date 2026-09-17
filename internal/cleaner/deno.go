@@ -56,13 +56,13 @@ func (d *DenoCleaner) EstimateReclaimable() (int64, error) {
 }
 
 func (d *DenoCleaner) Clean(dryRun bool) (int64, error) {
-	reclaimable, err := d.EstimateReclaimable()
+	before, err := d.EstimateReclaimable()
 	if err != nil {
 		return 0, err
 	}
 
 	if dryRun {
-		return reclaimable, nil
+		return before, nil
 	}
 
 	path := d.getCachePath()
@@ -70,5 +70,10 @@ func (d *DenoCleaner) Clean(dryRun bool) (int64, error) {
 		_ = os.RemoveAll(path)
 	}
 
-	return reclaimable, nil
+	after, _ := dirSize(path)
+	reclaimed := before - after
+	if reclaimed < 0 {
+		reclaimed = 0
+	}
+	return reclaimed, nil
 }

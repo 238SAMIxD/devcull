@@ -43,32 +43,44 @@ func (p *PipCleaner) IsInstalled() bool {
 	return true
 }
 
+func (p *PipCleaner) getCachePath() string {
+	out, err := exec.Command(p.getCmd(), "cache", "dir").Output()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(out))
+}
+
 func (p *PipCleaner) EstimateReclaimable() (int64, error) {
 	if !p.IsInstalled() {
 		return 0, ErrToolNotInstalled
 	}
 
-	out, err := exec.Command(p.getCmd(), "cache", "dir").Output()
-	if err != nil {
-		return 0, err
+	cachePath := p.getCachePath()
+	if cachePath == "" {
+		return 0, nil
 	}
-
-	return dirSize(strings.TrimSpace(string(out)))
+	return dirSize(cachePath)
 }
 
 func (p *PipCleaner) Clean(dryRun bool) (int64, error) {
-	reclaimable, err := p.EstimateReclaimable()
+	before, err := p.EstimateReclaimable()
 	if err != nil {
 		return 0, err
 	}
 
 	if dryRun {
-		return reclaimable, nil
+		return before, nil
 	}
 
 	if err := exec.Command(p.getCmd(), "cache", "purge").Run(); err != nil {
 		return 0, err
 	}
 
-	return reclaimable, nil
+	after, _ := dirSize(p.getCachePath())
+	reclaimed := before - after
+	if reclaimed < 0 {
+		reclaimed = 0
+	}
+	return reclaimed, nil
 }

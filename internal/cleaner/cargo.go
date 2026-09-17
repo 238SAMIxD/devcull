@@ -61,18 +61,27 @@ func (c *CargoCleaner) EstimateReclaimable() (int64, error) {
 }
 
 func (c *CargoCleaner) Clean(dryRun bool) (int64, error) {
-	reclaimable, err := c.EstimateReclaimable()
+	before, err := c.EstimateReclaimable()
 	if err != nil {
 		return 0, err
 	}
 
 	if dryRun {
-		return reclaimable, nil
+		return before, nil
 	}
 
 	for _, p := range c.getCachePaths() {
 		_ = os.RemoveAll(p)
 	}
 
-	return reclaimable, nil
+	var after int64
+	for _, p := range c.getCachePaths() {
+		size, _ := dirSize(p)
+		after += size
+	}
+	reclaimed := before - after
+	if reclaimed < 0 {
+		reclaimed = 0
+	}
+	return reclaimed, nil
 }

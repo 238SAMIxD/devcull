@@ -52,13 +52,13 @@ func (n *NvmCleaner) EstimateReclaimable() (int64, error) {
 }
 
 func (n *NvmCleaner) Clean(dryRun bool) (int64, error) {
-	reclaimable, err := n.EstimateReclaimable()
+	before, err := n.EstimateReclaimable()
 	if err != nil {
 		return 0, err
 	}
 
 	if dryRun {
-		return reclaimable, nil
+		return before, nil
 	}
 
 	cachePath := n.getCachePath()
@@ -66,5 +66,10 @@ func (n *NvmCleaner) Clean(dryRun bool) (int64, error) {
 		_ = os.RemoveAll(cachePath)
 	}
 
-	return reclaimable, nil
+	after, _ := dirSize(cachePath)
+	reclaimed := before - after
+	if reclaimed < 0 {
+		reclaimed = 0
+	}
+	return reclaimed, nil
 }

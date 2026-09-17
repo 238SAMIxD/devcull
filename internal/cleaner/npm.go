@@ -25,33 +25,44 @@ func (n *NpmCleaner) IsInstalled() bool {
 	return true
 }
 
+func (n *NpmCleaner) getCachePath() string {
+	out, err := exec.Command("npm", "config", "get", "cache").Output()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(out))
+}
+
 func (n *NpmCleaner) EstimateReclaimable() (int64, error) {
 	if !n.IsInstalled() {
 		return 0, ErrToolNotInstalled
 	}
 
-	out, err := exec.Command("npm", "config", "get", "cache").Output()
-	if err != nil {
-		return 0, err
+	cachePath := n.getCachePath()
+	if cachePath == "" {
+		return 0, nil
 	}
-
-	cachePath := strings.TrimSpace(string(out))
 	return dirSize(cachePath)
 }
 
 func (n *NpmCleaner) Clean(dryRun bool) (int64, error) {
-	reclaimable, err := n.EstimateReclaimable()
+	before, err := n.EstimateReclaimable()
 	if err != nil {
 		return 0, err
 	}
 
 	if dryRun {
-		return reclaimable, nil
+		return before, nil
 	}
 
 	if err := exec.Command("npm", "cache", "clean", "--force").Run(); err != nil {
 		return 0, err
 	}
 
-	return reclaimable, nil
+	after, _ := dirSize(n.getCachePath())
+	reclaimed := before - after
+	if reclaimed < 0 {
+		reclaimed = 0
+	}
+	return reclaimed, nil
 }

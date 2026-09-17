@@ -25,39 +25,56 @@ func (g *GoCleaner) IsInstalled() bool {
 	return true
 }
 
+func (g *GoCleaner) getCachePaths() []string {
+	var paths []string
+	if out, err := exec.Command("go", "env", "GOCACHE").Output(); err == nil {
+		if p := strings.TrimSpace(string(out)); p != "" {
+			paths = append(paths, p)
+		}
+	}
+	if out, err := exec.Command("go", "env", "GOMODCACHE").Output(); err == nil {
+		if p := strings.TrimSpace(string(out)); p != "" {
+			paths = append(paths, p)
+		}
+	}
+	return paths
+}
+
 func (g *GoCleaner) EstimateReclaimable() (int64, error) {
 	if !g.IsInstalled() {
 		return 0, ErrToolNotInstalled
 	}
 
 	var total int64
-
-	if out, err := exec.Command("go", "env", "GOCACHE").Output(); err == nil {
-		size, _ := dirSize(strings.TrimSpace(string(out)))
+	for _, p := range g.getCachePaths() {
+		size, _ := dirSize(p)
 		total += size
 	}
-
-	if out, err := exec.Command("go", "env", "GOMODCACHE").Output(); err == nil {
-		size, _ := dirSize(strings.TrimSpace(string(out)))
-		total += size
-	}
-
 	return total, nil
 }
 
 func (g *GoCleaner) Clean(dryRun bool) (int64, error) {
-	reclaimable, err := g.EstimateReclaimable()
+	before, err := g.EstimateReclaimable()
 	if err != nil {
 		return 0, err
 	}
 
 	if dryRun {
-		return reclaimable, nil
+		return before, nil
 	}
 
 	if err := exec.Command("go", "clean", "-cache", "-modcache").Run(); err != nil {
 		return 0, err
 	}
 
-	return reclaimable, nil
+	var after int64
+	for _, p := range g.getCachePaths() {
+		size, _ := dirSize(p)
+		after += size
+	}
+	reclaimed := before - after
+	if reclaimed < 0 {
+		reclaimed = 0
+	}
+	return reclaimed, nil
 }

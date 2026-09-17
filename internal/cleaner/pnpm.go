@@ -27,36 +27,46 @@ func (p *PnpmCleaner) IsInstalled() bool {
 	return true
 }
 
+func (p *PnpmCleaner) getCachePath() string {
+	out, err := exec.Command("pnpm", "store", "path").Output()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(out))
+}
+
 func (p *PnpmCleaner) EstimateReclaimable() (int64, error) {
 	if !p.IsInstalled() {
 		return 0, ErrToolNotInstalled
 	}
 
-	out, err := exec.Command("pnpm", "store", "path").Output()
-	if err != nil {
-		return 0, err
+	cachePath := p.getCachePath()
+	if cachePath == "" {
+		return 0, nil
 	}
-
-	storePath := strings.TrimSpace(string(out))
-
-	return dirSize(storePath)
+	return dirSize(cachePath)
 }
 
 func (p *PnpmCleaner) Clean(dryRun bool) (int64, error) {
-	reclaimable, err := p.EstimateReclaimable()
+	before, err := p.EstimateReclaimable()
 	if err != nil {
 		return 0, err
 	}
 
 	if dryRun {
-		return reclaimable, nil
+		return before, nil
 	}
 
 	if err := exec.Command("pnpm", "store", "prune").Run(); err != nil {
 		return 0, err
 	}
 
-	return reclaimable, nil
+	after, _ := dirSize(p.getCachePath())
+	reclaimed := before - after
+	if reclaimed < 0 {
+		reclaimed = 0
+	}
+	return reclaimed, nil
 }
 
 func dirSize(path string) (int64, error) {

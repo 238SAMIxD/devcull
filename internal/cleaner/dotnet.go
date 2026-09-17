@@ -66,18 +66,27 @@ func (d *DotnetCleaner) EstimateReclaimable() (int64, error) {
 }
 
 func (d *DotnetCleaner) Clean(dryRun bool) (int64, error) {
-	reclaimable, err := d.EstimateReclaimable()
+	before, err := d.EstimateReclaimable()
 	if err != nil {
 		return 0, err
 	}
 
-	if dryRun || reclaimable == 0 {
-		return reclaimable, nil
+	if dryRun || before == 0 {
+		return before, nil
 	}
 
 	if err := exec.Command("dotnet", "nuget", "locals", "all", "--clear").Run(); err != nil {
 		return 0, err
 	}
 
-	return reclaimable, nil
+	var after int64
+	for _, p := range d.getCachePaths() {
+		size, _ := dirSize(p)
+		after += size
+	}
+	reclaimed := before - after
+	if reclaimed < 0 {
+		reclaimed = 0
+	}
+	return reclaimed, nil
 }

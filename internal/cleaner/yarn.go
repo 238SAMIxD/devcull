@@ -25,32 +25,44 @@ func (y *YarnCleaner) IsInstalled() bool {
 	return true
 }
 
+func (y *YarnCleaner) getCachePath() string {
+	out, err := exec.Command("yarn", "cache", "dir").Output()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(out))
+}
+
 func (y *YarnCleaner) EstimateReclaimable() (int64, error) {
 	if !y.IsInstalled() {
 		return 0, ErrToolNotInstalled
 	}
 
-	out, err := exec.Command("yarn", "cache", "dir").Output()
-	if err != nil {
-		return 0, err
+	cachePath := y.getCachePath()
+	if cachePath == "" {
+		return 0, nil
 	}
-
-	return dirSize(strings.TrimSpace(string(out)))
+	return dirSize(cachePath)
 }
 
 func (y *YarnCleaner) Clean(dryRun bool) (int64, error) {
-	reclaimable, err := y.EstimateReclaimable()
+	before, err := y.EstimateReclaimable()
 	if err != nil {
 		return 0, err
 	}
 
 	if dryRun {
-		return reclaimable, nil
+		return before, nil
 	}
 
 	if err := exec.Command("yarn", "cache", "clean").Run(); err != nil {
 		return 0, err
 	}
 
-	return reclaimable, nil
+	after, _ := dirSize(y.getCachePath())
+	reclaimed := before - after
+	if reclaimed < 0 {
+		reclaimed = 0
+	}
+	return reclaimed, nil
 }
