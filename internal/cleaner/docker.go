@@ -32,19 +32,17 @@ func (d *DockerCleaner) EstimateReclaimable() (int64, error) {
 		return 0, ErrToolNotInstalled
 	}
 
-	out, err := exec.Command("docker", "system", "df").Output()
+	out, err := exec.Command("docker", "system", "df", "--format", "{{.Reclaimable}}").Output()
 	if err != nil {
 		return 0, err
 	}
 
 	var totalEstimate int64
-	lines := strings.Split(string(out), "\n")
-	
-	for _, line := range lines {
-		if strings.HasPrefix(line, "TYPE") || strings.TrimSpace(line) == "" || strings.HasPrefix(line, "Local Volumes") {
+	for _, line := range strings.Split(string(out), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
 			continue
 		}
-		
 		totalEstimate += utils.ParseByteString(line)
 	}
 
