@@ -14,6 +14,7 @@ const (
 	CategoryNode   Category = "Node"
 	CategoryPython Category = "Python"
 	CategoryJava   Category = "Java"
+	CategoryCpp    Category = "C++"
 	CategoryCSharp Category = "C#"
 	CategoryGo     Category = "Go"
 	CategoryRust   Category = "Rust"
@@ -26,6 +27,7 @@ func AllCategories() []Category {
 		CategoryNode,
 		CategoryPython,
 		CategoryJava,
+		CategoryCpp,
 		CategoryCSharp,
 		CategoryGo,
 		CategoryRust,
@@ -67,8 +69,14 @@ func All() []Cleaner {
 			&UvCleaner{},
 			&PoetryCleaner{},
 
-			// .NET
+			// C/C++
+			&UnrealCleaner{},
+			&CcacheCleaner{},
+			&ConanCleaner{},
+
+			// C#
 			&DotnetCleaner{},
+			&UnityCleaner{},
 
 			// Java
       &MavenCleaner{},
@@ -121,6 +129,9 @@ func MatchesArg(cleaner Cleaner, arg string) bool {
 		return cleaner.Category() == CategoryGo
 	case "mac", "apple", "ios", "macos", "darwin":
 		return nameLower == "cocoapods" || cleaner.Category() == CategoryApple
+	case "c", "cpp", "c++":
+		return cleaner.Category() == CategoryCpp
+	
 		
 	case "brew":
 		return nameLower == "homebrew"
@@ -132,6 +143,8 @@ func MatchesArg(cleaner Cleaner, arg string) bool {
 		return nameLower == "maven"
 	case "kt", "konan":
 		return nameLower == "kotlin"
+		case "ue", "ue5", "unreal", "unrealengine":
+		return nameLower == "unreal engine"
 	}
 
 	return false
