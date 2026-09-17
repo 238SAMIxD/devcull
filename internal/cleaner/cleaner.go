@@ -18,6 +18,7 @@ const (
 	CategoryCSharp Category = "C#"
 	CategoryGo     Category = "Go"
 	CategoryRust   Category = "Rust"
+	CategoryFlutter	 Category = "Flutter"
 	CategoryApple  Category = "Apple Ecosystem"
 	CategorySystem Category = "System & DevOps"
 )
@@ -31,6 +32,7 @@ func AllCategories() []Category {
 		CategoryCSharp,
 		CategoryGo,
 		CategoryRust,
+		CategoryFlutter,
 		CategoryApple,
 		CategorySystem,
 	}
@@ -83,6 +85,10 @@ func All() []Cleaner {
       &GradleCleaner{},
       &KotlinCleaner{},
       &AndroidCleaner{},
+
+			// Flutter
+			&DartCleaner{},
+			&FvmCleaner{},
 		}
 }
 
@@ -131,7 +137,8 @@ func MatchesArg(cleaner Cleaner, arg string) bool {
 		return nameLower == "cocoapods" || cleaner.Category() == CategoryApple
 	case "c", "cpp", "c++":
 		return cleaner.Category() == CategoryCpp
-	
+	case "flutter", "pub":
+		return cleaner.Category() == CategoryFlutter
 		
 	case "brew":
 		return nameLower == "homebrew"
@@ -143,7 +150,7 @@ func MatchesArg(cleaner Cleaner, arg string) bool {
 		return nameLower == "maven"
 	case "kt", "konan":
 		return nameLower == "kotlin"
-		case "ue", "ue5", "unreal", "unrealengine":
+	case "ue", "ue5", "unreal", "unrealengine":
 		return nameLower == "unreal engine"
 	}
 
