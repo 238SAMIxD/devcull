@@ -33,11 +33,15 @@ func (b *BunCleaner) EstimateReclaimable() (int64, error) {
 
 	out, err := exec.Command("bun", "pm", "cache").Output()
 	if err != nil {
-		return 0, err
+		return 0, nil
 	}
 
 	cachePath := strings.TrimSpace(string(out))
 	if cachePath == "" {
+		return 0, nil
+	}
+
+	if _, err := os.Stat(cachePath); os.IsNotExist(err) {
 		return 0, nil
 	}
 
@@ -50,7 +54,7 @@ func (b *BunCleaner) Clean(dryRun bool) (int64, error) {
 		return 0, err
 	}
 
-	if dryRun {
+	if dryRun || reclaimable == 0 {
 		return reclaimable, nil
 	}
 
