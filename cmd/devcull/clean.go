@@ -21,11 +21,18 @@ var cleanCmd = &cobra.Command{
 			&cleaner.NpmCleaner{},
 			&cleaner.PnpmCleaner{},
 			&cleaner.YarnCleaner{},
+
 			&cleaner.GoCleaner{},
 			&cleaner.CargoCleaner{},
+
 			&cleaner.BrewCleaner{},
+
 			&cleaner.UvCleaner{},
+
 			&cleaner.DockerCleaner{},
+			
+			&cleaner.BunCleaner{},
+			&cleaner.DenoCleaner{},
 		}
 
 		var activeCleaners []cleaner.Cleaner
