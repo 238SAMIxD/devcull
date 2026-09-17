@@ -12,7 +12,7 @@ func (d *DotnetCleaner) Name() string {
 }
 
 func (d *DotnetCleaner) Category() Category {
-	return CategoryDotnet
+	return CategoryCSharp
 }
 
 func (d *DotnetCleaner) IsInstalled() bool {

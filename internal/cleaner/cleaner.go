@@ -14,7 +14,7 @@ const (
 	CategoryNode   Category = "Node"
 	CategoryPython Category = "Python"
 	CategoryJava   Category = "Java"
-	CategoryDotnet Category = ".NET"
+	CategoryCSharp Category = "C#"
 	CategoryGo     Category = "Go"
 	CategoryRust   Category = "Rust"
 	CategoryApple  Category = "Apple Ecosystem"
@@ -26,7 +26,7 @@ func AllCategories() []Category {
 		CategoryNode,
 		CategoryPython,
 		CategoryJava,
-		CategoryDotnet,
+		CategoryCSharp,
 		CategoryGo,
 		CategoryRust,
 		CategoryApple,
@@ -109,20 +109,29 @@ func MatchesArg(cleaner Cleaner, arg string) bool {
 	}
 
 	switch argLower {
-	case "brew", "macos":
-		return nameLower == "homebrew"
-	case "py", "python3":
+	case "py", "python3", "python":
 		return cleaner.Category() == CategoryPython
-	case "node", "nodejs", "js", "ts", "javascript":
+	case "node", "node.js", "nodejs", "javascript", "typescript", "js", "ts":
 		return cleaner.Category() == CategoryNode
 	case "java", "jvm":
 		return cleaner.Category() == CategoryJava
-	case "cs", "c#", "csharp", ".net", "nuget":
-		return cleaner.Category() == CategoryDotnet
+	case "cs", "c#", "csharp", ".net":
+		return cleaner.Category() == CategoryCSharp
 	case "golang":
 		return cleaner.Category() == CategoryGo
-	case "mac", "apple", "ios":
+	case "mac", "apple", "ios", "macos", "darwin":
 		return nameLower == "cocoapods" || cleaner.Category() == CategoryApple
+		
+	case "brew":
+		return nameLower == "homebrew"
+	case "pip3":
+		return nameLower == "pip"
+	case "nuget":
+		return nameLower == "dotnet"
+	case "mvn":
+		return nameLower == "maven"
+	case "kt", "konan":
+		return nameLower == "kotlin"
 	}
 
 	return false

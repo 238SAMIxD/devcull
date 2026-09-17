@@ -40,8 +40,8 @@ func TestMatchesArg(t *testing.T) {
 		{"ts -> node category", &mockCleaner{"Bun", CategoryNode}, "ts", true},
 		{"java -> java category", &mockCleaner{"Maven", CategoryJava}, "java", true},
 		{"jvm -> java category", &mockCleaner{"Gradle", CategoryJava}, "jvm", true},
-		{"c# -> dotnet category", &mockCleaner{"Dotnet", CategoryDotnet}, "c#", true},
-		{"nuget -> dotnet category", &mockCleaner{"Dotnet", CategoryDotnet}, "nuget", true},
+		{"c# -> dotnet category", &mockCleaner{"Dotnet", CategoryCSharp}, "c#", true},
+		{"nuget -> dotnet category", &mockCleaner{"Dotnet", CategoryCSharp}, "nuget", true},
 		{"golang -> go category", &mockCleaner{"Go", CategoryGo}, "golang", true},
 		
 		// Apple specific
