@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/238SAMIxD/devcull/internal/cleaner"
 	"github.com/238SAMIxD/devcull/internal/stats"
 	"github.com/238SAMIxD/devcull/internal/ui"
 	"github.com/spf13/cobra"
@@ -10,28 +11,60 @@ import (
 
 var statsCmd = &cobra.Command{
 	Use:   "stats",
-	Short: "View your all-time disk space reclamation stats",
+	Short: "View historical cleanup statistics",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		state, err := stats.Load()
+		s, err := stats.Load()
 		if err != nil {
 			return fmt.Errorf("failed to load stats: %w", err)
 		}
 
-		if state.AllTimeTotal == 0 {
-			fmt.Println("No stats yet! Run 'devcull clean' to start reclaiming space.")
+		if s.AllTimeTotal == 0 {
+			fmt.Println("No cleanup history found. Run 'devcull clean' to get started!")
 			return nil
 		}
 
-		fmt.Printf("🏆 All-Time Total Reclaimed: %s\n\n", ui.FormatBytes(state.AllTimeTotal))
-		
-		for tool, ts := range state.Tools {
-			fmt.Printf("📦 %s\n", tool)
-			fmt.Printf("   Total: %s\n", ui.FormatBytes(ts.TotalReclaimed))
-			fmt.Printf("   Recent Runs:\n")
-			for i, run := range ts.RecentRuns {
-				fmt.Printf("     %d. %s\n", i+1, ui.FormatBytes(run))
+		fmt.Println("📊 Devcull Historical Stats")
+		fmt.Println("===========================")
+		fmt.Printf("Total Space Reclaimed: %s\n\n", ui.FormatBytes(s.AllTimeTotal))
+
+		toolToCategory := make(map[string]cleaner.Category)
+		for _, c := range cleaner.All() {
+			toolToCategory[c.Name()] = c.Category()
+		}
+
+		groupedStats := make(map[cleaner.Category]map[string]int64)
+		categoryTotals := make(map[cleaner.Category]int64)
+
+		for toolName, toolStat := range s.Tools {
+			if toolStat == nil || toolStat.TotalReclaimed == 0 {
+				continue
 			}
-			fmt.Println()
+
+			cat, exists := toolToCategory[toolName]
+			if !exists {
+				cat = cleaner.CategorySystem
+			}
+
+			if groupedStats[cat] == nil {
+				groupedStats[cat] = make(map[string]int64)
+			}
+			
+			groupedStats[cat][toolName] = toolStat.TotalReclaimed
+			categoryTotals[cat] += toolStat.TotalReclaimed
+		}
+
+		fmt.Println("🏆 All-Time Leaderboard")
+
+		for _, cat := range cleaner.AllCategories() {
+			toolsInCat, exists := groupedStats[cat]
+			if !exists || len(toolsInCat) == 0 {
+				continue
+			}
+
+			fmt.Printf("\n=== %s [%s] ===\n", cat, ui.FormatBytes(categoryTotals[cat]))
+			for toolName, reclaimed := range toolsInCat {
+				fmt.Printf("  %-12s %s\n", toolName, ui.FormatBytes(reclaimed))
+			}
 		}
 
 		return nil
