@@ -6,8 +6,6 @@ import (
 	"strings"
 )
 
-
-
 type Category string
 
 const (
@@ -48,7 +46,7 @@ type Cleaner interface {
 	Clean(dryRun bool) (int64, error)
 }
 
-func All() []Cleaner {
+func Native() []Cleaner {
 	return []Cleaner{
 			// Node.js
 			&NvmCleaner{},
@@ -101,7 +99,7 @@ func All() []Cleaner {
 			&ComposerCleaner{},
 			&PhpbrewCleaner{},
 		}
-}
+	}
 
 func dirSize(path string) (int64, error) {
 	var size int64

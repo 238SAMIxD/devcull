@@ -13,7 +13,7 @@ var scanCmd = &cobra.Command{
 	Use:   "scan [tool...]",
 	Short: "Audit and estimate reclaimable disk space across installed tools",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		allCleaners := cleaner.All()
+		allCleaners := getAllCleaners()
 
 		var activeCleaners []cleaner.Cleaner
 		if len(args) > 0 {

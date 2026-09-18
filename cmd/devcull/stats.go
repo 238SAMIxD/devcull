@@ -28,7 +28,7 @@ var statsCmd = &cobra.Command{
 		fmt.Printf("Total Space Reclaimed: %s\n\n", ui.FormatBytes(s.AllTimeTotal))
 
 		toolToCategory := make(map[string]cleaner.Category)
-		for _, c := range cleaner.All() {
+		for _, c := range getAllCleaners() {
 			toolToCategory[c.Name()] = c.Category()
 		}
 

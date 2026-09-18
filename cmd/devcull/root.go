@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/238SAMIxD/devcull/internal/cleaner"
+	"github.com/238SAMIxD/devcull/internal/plugin"
 	"github.com/spf13/cobra"
 )
 
@@ -11,4 +13,10 @@ var rootCmd = &cobra.Command{
 
 func Execute() error {
 	return rootCmd.Execute()
+}
+
+func getAllCleaners() []cleaner.Cleaner {
+	all := cleaner.Native()
+	all = append(all, plugin.LoadPlugins()...)
+	return all
 }
