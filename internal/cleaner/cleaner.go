@@ -19,6 +19,7 @@ const (
 	CategoryFlutter	 Category = "Flutter"
 	CategoryPHP    Category = "PHP"
 	CategoryApple  Category = "Apple Ecosystem"
+	CategoryIDE        Category = "IDE"
 	CategorySystem Category = "System & DevOps"
 )
 
@@ -34,6 +35,7 @@ func AllCategories() []Category {
 		CategoryFlutter,
 		CategoryPHP,
 		CategoryApple,
+		CategoryIDE,
 		CategorySystem,
 	}
 }
@@ -98,6 +100,11 @@ func Native() []Cleaner {
 			// PHP
 			&ComposerCleaner{},
 			&PhpbrewCleaner{},
+
+			// IDE
+			&EclipseCleaner{},
+			&JetBrainsCleaner{},
+			&VSCodeCleaner{},
 		}
 	}
 
@@ -177,6 +184,8 @@ func MatchesArg(cleaner Cleaner, arg string) bool {
 		return cleaner.Category() == CategoryFlutter
 	case "php", "composer", "laravel":
 		return cleaner.Category() == CategoryPHP
+	case "editor", "editors", "ides", "codeeditor", "texteditor", "text":
+		return cleaner.Category() == CategoryIDE
 	case "system", "devops", "ops":
 		return cleaner.Category() == CategorySystem
 
