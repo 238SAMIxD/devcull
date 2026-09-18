@@ -28,10 +28,5 @@ func (g *GradleCleaner) EstimateReclaimable() (int64, error) {
 }
 
 func (g *GradleCleaner) Clean(dryRun bool) (int64, error) {
-	reclaimable, err := g.EstimateReclaimable()
-	if err != nil || dryRun || reclaimable == 0 {
-		return reclaimable, err
-	}
-	_ = os.RemoveAll(g.getCachePath())
-	return reclaimable, nil
+	return cleanDirs([]string{g.getCachePath()}, dryRun)
 }

@@ -32,21 +32,9 @@ func (p *PhpbrewCleaner) IsInstalled() bool {
 }
 
 func (p *PhpbrewCleaner) EstimateReclaimable() (int64, error) {
-	var total int64
-	for _, path := range p.getCachePaths() {
-		size, _ := dirSize(path)
-		total += size
-	}
-	return total, nil
+	return dirsSize(p.getCachePaths()), nil
 }
 
 func (p *PhpbrewCleaner) Clean(dryRun bool) (int64, error) {
-	reclaimable, err := p.EstimateReclaimable()
-	if err != nil || dryRun || reclaimable == 0 {
-		return reclaimable, err
-	}
-	for _, path := range p.getCachePaths() {
-		_ = os.RemoveAll(path)
-	}
-	return reclaimable, nil
+	return cleanDirs(p.getCachePaths(), dryRun)
 }

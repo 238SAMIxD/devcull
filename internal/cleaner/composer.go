@@ -44,21 +44,9 @@ func (c *ComposerCleaner) IsInstalled() bool {
 }
 
 func (c *ComposerCleaner) EstimateReclaimable() (int64, error) {
-	var total int64
-	for _, p := range c.getCachePaths() {
-		size, _ := dirSize(p)
-		total += size
-	}
-	return total, nil
+	return dirsSize(c.getCachePaths()), nil
 }
 
 func (c *ComposerCleaner) Clean(dryRun bool) (int64, error) {
-	reclaimable, err := c.EstimateReclaimable()
-	if err != nil || dryRun || reclaimable == 0 {
-		return reclaimable, err
-	}
-	for _, p := range c.getCachePaths() {
-		_ = os.RemoveAll(p)
-	}
-	return reclaimable, nil
+	return cleanDirs(c.getCachePaths(), dryRun)
 }

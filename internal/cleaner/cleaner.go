@@ -118,6 +118,33 @@ func dirSize(path string) (int64, error) {
 	return size, err
 }
 
+func dirsSize(paths []string) int64 {
+	var total int64
+	for _, p := range paths {
+		size, _ := dirSize(p)
+		total += size
+	}
+	return total
+}
+
+func cleanDirs(paths []string, dryRun bool) (int64, error) {
+	before := dirsSize(paths)
+	if before == 0 || dryRun {
+		return before, nil
+	}
+
+	for _, p := range paths {
+		_ = os.RemoveAll(p)
+	}
+
+	after := dirsSize(paths)
+	reclaimed := before - after
+	if reclaimed < 0 {
+		reclaimed = 0
+	}
+	return reclaimed, nil
+}
+
 func MatchesArg(cleaner Cleaner, arg string) bool {
 	argLower := strings.ToLower(strings.TrimSpace(arg))
 	nameLower := strings.ToLower(cleaner.Name())

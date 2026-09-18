@@ -28,10 +28,5 @@ func (m *MavenCleaner) EstimateReclaimable() (int64, error) {
 }
 
 func (m *MavenCleaner) Clean(dryRun bool) (int64, error) {
-	reclaimable, err := m.EstimateReclaimable()
-	if err != nil || dryRun || reclaimable == 0 {
-		return reclaimable, err
-	}
-	_ = os.RemoveAll(m.getCachePath())
-	return reclaimable, nil
+	return cleanDirs([]string{m.getCachePath()}, dryRun)
 }

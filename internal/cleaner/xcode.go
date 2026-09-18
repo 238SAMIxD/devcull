@@ -39,21 +39,9 @@ func (x *XcodeCleaner) IsInstalled() bool {
 }
 
 func (x *XcodeCleaner) EstimateReclaimable() (int64, error) {
-	var total int64
-	for _, p := range x.getCachePaths() {
-		size, _ := dirSize(p)
-		total += size
-	}
-	return total, nil
+	return dirsSize(x.getCachePaths()), nil
 }
 
 func (x *XcodeCleaner) Clean(dryRun bool) (int64, error) {
-	reclaimable, err := x.EstimateReclaimable()
-	if err != nil || dryRun || reclaimable == 0 {
-		return reclaimable, err
-	}
-	for _, p := range x.getCachePaths() {
-		_ = os.RemoveAll(p)
-	}
-	return reclaimable, nil
+	return cleanDirs(x.getCachePaths(), dryRun)
 }

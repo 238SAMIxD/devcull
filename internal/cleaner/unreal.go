@@ -42,21 +42,9 @@ func (u *UnrealCleaner) IsInstalled() bool {
 }
 
 func (u *UnrealCleaner) EstimateReclaimable() (int64, error) {
-	var total int64
-	for _, p := range u.getCachePaths() {
-		size, _ := dirSize(p)
-		total += size
-	}
-	return total, nil
+	return dirsSize(u.getCachePaths()), nil
 }
 
 func (u *UnrealCleaner) Clean(dryRun bool) (int64, error) {
-	reclaimable, err := u.EstimateReclaimable()
-	if err != nil || dryRun || reclaimable == 0 {
-		return reclaimable, err
-	}
-	for _, p := range u.getCachePaths() {
-		_ = os.RemoveAll(p)
-	}
-	return reclaimable, nil
+	return cleanDirs(u.getCachePaths(), dryRun)
 }

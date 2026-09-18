@@ -32,21 +32,9 @@ func (f *FvmCleaner) IsInstalled() bool {
 }
 
 func (f *FvmCleaner) EstimateReclaimable() (int64, error) {
-	var total int64
-	for _, p := range f.getCachePaths() {
-		size, _ := dirSize(p)
-		total += size
-	}
-	return total, nil
+	return dirsSize(f.getCachePaths()), nil
 }
 
 func (f *FvmCleaner) Clean(dryRun bool) (int64, error) {
-	reclaimable, err := f.EstimateReclaimable()
-	if err != nil || dryRun || reclaimable == 0 {
-		return reclaimable, err
-	}
-	for _, p := range f.getCachePaths() {
-		_ = os.RemoveAll(p)
-	}
-	return reclaimable, nil
+	return cleanDirs(f.getCachePaths(), dryRun)
 }

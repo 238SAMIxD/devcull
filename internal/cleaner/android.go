@@ -31,21 +31,9 @@ func (a *AndroidCleaner) IsInstalled() bool {
 }
 
 func (a *AndroidCleaner) EstimateReclaimable() (int64, error) {
-	var total int64
-	for _, p := range a.getCachePaths() {
-		size, _ := dirSize(p)
-		total += size
-	}
-	return total, nil
+	return dirsSize(a.getCachePaths()), nil
 }
 
 func (a *AndroidCleaner) Clean(dryRun bool) (int64, error) {
-	reclaimable, err := a.EstimateReclaimable()
-	if err != nil || dryRun || reclaimable == 0 {
-		return reclaimable, err
-	}
-	for _, p := range a.getCachePaths() {
-		_ = os.RemoveAll(p)
-	}
-	return reclaimable, nil
+	return cleanDirs(a.getCachePaths(), dryRun)
 }

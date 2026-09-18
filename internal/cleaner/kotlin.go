@@ -28,10 +28,5 @@ func (k *KotlinCleaner) EstimateReclaimable() (int64, error) {
 }
 
 func (k *KotlinCleaner) Clean(dryRun bool) (int64, error) {
-	reclaimable, err := k.EstimateReclaimable()
-	if err != nil || dryRun || reclaimable == 0 {
-		return reclaimable, err
-	}
-	_ = os.RemoveAll(k.getCachePath())
-	return reclaimable, nil
+	return cleanDirs([]string{k.getCachePath()}, dryRun)
 }
