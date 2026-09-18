@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 
+	"sort"
+
 	"github.com/238SAMIxD/devcull/internal/cleaner"
 	"github.com/238SAMIxD/devcull/internal/stats"
 	"github.com/238SAMIxD/devcull/internal/ui"
@@ -55,6 +57,11 @@ var statsCmd = &cobra.Command{
 
 		fmt.Println("🏆 All-Time Leaderboard")
 
+		type statEntry struct {
+			name      string
+			reclaimed int64
+		}
+
 		for _, cat := range cleaner.AllCategories() {
 			toolsInCat, exists := groupedStats[cat]
 			if !exists || len(toolsInCat) == 0 {
@@ -62,8 +69,21 @@ var statsCmd = &cobra.Command{
 			}
 
 			fmt.Printf("\n=== %s [%s] ===\n", cat, ui.FormatBytes(categoryTotals[cat]))
-			for toolName, reclaimed := range toolsInCat {
-				fmt.Printf("  %-12s %s\n", toolName, ui.FormatBytes(reclaimed))
+			
+			var entries []statEntry
+			for name, reclaimed := range toolsInCat {
+				entries = append(entries, statEntry{name, reclaimed})
+			}
+			
+			sort.Slice(entries, func(i, j int) bool {
+				if entries[i].reclaimed == entries[j].reclaimed {
+					return entries[i].name < entries[j].name
+				}
+				return entries[i].reclaimed > entries[j].reclaimed
+			})
+
+			for _, entry := range entries {
+				fmt.Printf("  %-12s %s\n", entry.name, ui.FormatBytes(entry.reclaimed))
 			}
 		}
 
