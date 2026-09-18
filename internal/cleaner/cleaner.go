@@ -19,6 +19,7 @@ const (
 	CategoryGo     Category = "Go"
 	CategoryRust   Category = "Rust"
 	CategoryFlutter	 Category = "Flutter"
+	CategoryPHP    Category = "PHP"
 	CategoryApple  Category = "Apple Ecosystem"
 	CategorySystem Category = "System & DevOps"
 )
@@ -33,6 +34,7 @@ func AllCategories() []Category {
 		CategoryGo,
 		CategoryRust,
 		CategoryFlutter,
+		CategoryPHP,
 		CategoryApple,
 		CategorySystem,
 	}
@@ -94,6 +96,10 @@ func All() []Cleaner {
 			&CocoaPodsCleaner{},
 			&SwiftPMCleaner{},
 			&XcodeCleaner{},
+
+			// PHP
+			&ComposerCleaner{},
+			&PhpbrewCleaner{},
 		}
 }
 
@@ -144,6 +150,8 @@ func MatchesArg(cleaner Cleaner, arg string) bool {
 		return cleaner.Category() == CategoryCpp
 	case "flutter", "pub":
 		return cleaner.Category() == CategoryFlutter
+	case "php", "composer", "laravel":
+		return cleaner.Category() == CategoryPHP
 		
 	case "brew":
 		return nameLower == "homebrew"
