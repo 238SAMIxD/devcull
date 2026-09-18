@@ -28,12 +28,12 @@ func TestMatchesArg(t *testing.T) {
 		// 2. Category matches
 		{"exact category", &mockCleaner{"Pip", CategoryPython}, "python", true},
 		{"category partial (prefix)", &mockCleaner{"NPM", CategoryNode}, "node", true},
-		{"category partial (substring)", &mockCleaner{"NPM", CategoryNode}, "& js", true},
+		{"category partial (substring)", &mockCleaner{"Docker", CategorySystem}, "devops", true},
 		{"category case insensitive", &mockCleaner{"Cargo", CategoryRust}, "RUST", true},
 
 		// 3. Explicit aliases
 		{"brew -> homebrew", &mockCleaner{"Homebrew", CategorySystem}, "brew", true},
-		{"macos -> homebrew", &mockCleaner{"Homebrew", CategorySystem}, "macos", true},
+		{"macos -> apple category", &mockCleaner{"Xcode", CategoryApple}, "macos", true},
 		{"py -> python category", &mockCleaner{"Poetry", CategoryPython}, "py", true},
 		{"python3 -> python category", &mockCleaner{"Uv", CategoryPython}, "python3", true},
 		{"node -> node category", &mockCleaner{"Yarn", CategoryNode}, "node", true},
