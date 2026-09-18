@@ -28,7 +28,7 @@ func TestMatchesArg(t *testing.T) {
 		// 2. Category matches
 		{"exact category", &mockCleaner{"Pip", CategoryPython}, "python", true},
 		{"category partial (prefix)", &mockCleaner{"NPM", CategoryNode}, "node", true},
-		{"category partial (substring)", &mockCleaner{"Docker", CategorySystem}, "devops", true},
+		{"category alias (devops)", &mockCleaner{"Docker", CategorySystem}, "devops", true},
 		{"category case insensitive", &mockCleaner{"Cargo", CategoryRust}, "RUST", true},
 
 		// 3. Explicit aliases
@@ -52,6 +52,11 @@ func TestMatchesArg(t *testing.T) {
 		{"wrong name", &mockCleaner{"Pip", CategoryPython}, "npm", false},
 		{"wrong category", &mockCleaner{"Pip", CategoryPython}, "rust", false},
 		{"unrelated alias", &mockCleaner{"Cargo", CategoryRust}, "brew", false},
+
+		// 5. Regression: short args must not cross-match via substring
+		{"c must not match apple", &mockCleaner{"Xcode", CategoryApple}, "c", false},
+		{"c must not match c#", &mockCleaner{"Dotnet", CategoryCSharp}, "c", false},
+		{"o must not match python", &mockCleaner{"Pip", CategoryPython}, "o", false},
 	}
 
 	for _, tt := range tests {

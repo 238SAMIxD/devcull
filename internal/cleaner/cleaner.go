@@ -127,7 +127,7 @@ func MatchesArg(cleaner Cleaner, arg string) bool {
 		return true
 	}
 
-	if catLower == argLower || strings.Contains(catLower, argLower) {
+	if catLower == argLower {
 		return true
 	}
 
@@ -150,7 +150,9 @@ func MatchesArg(cleaner Cleaner, arg string) bool {
 		return cleaner.Category() == CategoryFlutter
 	case "php", "composer", "laravel":
 		return cleaner.Category() == CategoryPHP
-		
+	case "system", "devops", "ops":
+		return cleaner.Category() == CategorySystem
+
 	case "brew":
 		return nameLower == "homebrew"
 	case "pip3":
