@@ -45,7 +45,14 @@ var cleanCmd = &cobra.Command{
 		}
 
 		var sessionTotal int64
+		hasArgs := len(args) > 0
 		for _, r := range results {
+			if r.Skipped {
+				if hasArgs {
+					fmt.Printf("⏭️  %s skipped (not installed)\n", r.CleanerName)
+				}
+				continue
+			}
 			if r.Err != nil {
 				fmt.Printf("❌ %s failed: %v\n", r.CleanerName, r.Err)
 				continue

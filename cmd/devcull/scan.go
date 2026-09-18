@@ -42,8 +42,11 @@ var scanCmd = &cobra.Command{
 		var totalReclaimable int64
 
 		for _, r := range results {
+			if r.Skipped && len(args) == 0 {
+				continue
+			}
 			grouped[r.Category] = append(grouped[r.Category], r)
-			if r.Err == nil {
+			if r.Err == nil && !r.Skipped {
 				totalReclaimable += r.Reclaimable
 			}
 		}
@@ -56,7 +59,7 @@ var scanCmd = &cobra.Command{
 
 			var catTotal int64
 			for _, r := range catResults {
-				if r.Err == nil {
+				if r.Err == nil && !r.Skipped {
 					catTotal += r.Reclaimable
 				}
 			}
@@ -64,6 +67,10 @@ var scanCmd = &cobra.Command{
 			fmt.Printf("\n=== %s [%s] ===\n", cat, ui.FormatBytes(catTotal))
 			
 			for _, r := range catResults {
+				if r.Skipped {
+					fmt.Printf("⏭️  %-12s not installed\n", r.CleanerName)
+					continue
+				}
 				if r.Err != nil {
 					fmt.Printf("⚠️  %-12s error: %v\n", r.CleanerName, r.Err)
 					continue

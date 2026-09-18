@@ -8,7 +8,9 @@ import (
 
 type Result struct {
 	CleanerName string
+	Category    cleaner.Category
 	Reclaimed   int64
+	Skipped     bool
 	Err         error
 }
 
@@ -16,6 +18,7 @@ type ScanResult struct {
 	CleanerName string
 	Category    cleaner.Category
 	Reclaimable int64
+	Skipped     bool
 	Err         error
 }
 
@@ -29,12 +32,18 @@ func Run(cleaners []cleaner.Cleaner, dryRun bool) []Result {
 			defer wg.Done()
 
 			if !clr.IsInstalled() {
+				resultsCh <- Result{
+					CleanerName: clr.Name(),
+					Category:    clr.Category(),
+					Skipped:     true,
+				}
 				return
 			}
 
 			reclaimed, err := clr.Clean(dryRun)
 			resultsCh <- Result{
 				CleanerName: clr.Name(),
+				Category:    clr.Category(),
 				Reclaimed:   reclaimed,
 				Err:         err,
 			}
@@ -61,6 +70,11 @@ func Scan(cleaners []cleaner.Cleaner) []ScanResult {
 			defer wg.Done()
 
 			if !clr.IsInstalled() {
+				resultsCh <- ScanResult{
+					CleanerName: clr.Name(),
+					Category:    clr.Category(),
+					Skipped:     true,
+				}
 				return
 			}
 
