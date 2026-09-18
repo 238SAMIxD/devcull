@@ -105,6 +105,11 @@ func Native() []Cleaner {
 			&EclipseCleaner{},
 			&JetBrainsCleaner{},
 			&VSCodeCleaner{},
+			&NeovimCleaner{},
+			&NetBeansCleaner{},
+			&NotepadPlusPlusCleaner{},
+			&SublimeCleaner{},
+			&VisualStudioCleaner{},
 		}
 	}
 
@@ -184,7 +189,7 @@ func MatchesArg(cleaner Cleaner, arg string) bool {
 		return cleaner.Category() == CategoryFlutter
 	case "php", "composer", "laravel":
 		return cleaner.Category() == CategoryPHP
-	case "editor", "editors", "ides", "codeeditor", "texteditor", "text":
+	case "editor", "editors", "ides", "codeeditor", "texteditor", "text", "environment", "env", "dev":
 		return cleaner.Category() == CategoryIDE
 	case "system", "devops", "ops":
 		return cleaner.Category() == CategorySystem
