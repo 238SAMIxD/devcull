@@ -81,11 +81,16 @@ func (s *State) Save() error {
 	if err != nil {
 		return err
 	}
-	
+
 	b, err := json.MarshalIndent(s, "", "  ")
 	if err != nil {
 		return err
 	}
-	
-	return os.WriteFile(path, b, 0644)
+	b = append(b, '\n')
+
+	tmp := path + ".tmp"
+	if err := os.WriteFile(tmp, b, 0644); err != nil {
+		return err
+	}
+	return os.Rename(tmp, path)
 }
