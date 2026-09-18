@@ -9,44 +9,43 @@ import (
 )
 
 func LoadPlugins() []cleaner.Cleaner {
-	configDir, err := os.UserConfigDir()
-	if err != nil {
-		return nil
-	}
-
-	pluginsDir := filepath.Join(configDir, "devcull", "plugins")
-	entries, err := os.ReadDir(pluginsDir)
-	if err != nil {
-		return nil
-	}
-
 	var plugins []cleaner.Cleaner
+
+	if cwd, err := os.Getwd(); err == nil {
+		plugins = append(plugins, loadFromDir(filepath.Join(cwd, "plugins"))...)
+	}
+	if configDir, err := os.UserConfigDir(); err == nil {
+		plugins = append(plugins, loadFromDir(filepath.Join(configDir, "devcull", "plugins"))...)
+	}
+
+	return plugins
+}
+
+func loadFromDir(dir string) []cleaner.Cleaner {
+	var plugins []cleaner.Cleaner
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return plugins
+	}
 
 	for _, entry := range entries {
 		if !entry.IsDir() {
 			continue
 		}
 
-		pluginPath := filepath.Join(pluginsDir, entry.Name())
-		manifestPath := filepath.Join(pluginPath, "manifest.json")
-
-		data, err := os.ReadFile(manifestPath)
+		pluginPath := filepath.Join(dir, entry.Name())
+		data, err := os.ReadFile(filepath.Join(pluginPath, "manifest.json"))
 		if err != nil {
 			continue
 		}
 
 		var manifest Manifest
-		if err := json.Unmarshal(data, &manifest); err != nil {
-			continue
-		}
-
-		if manifest.Name == "" || len(manifest.Entrypoint) == 0 {
-			continue
+		if err := json.Unmarshal(data, &manifest); err != nil || manifest.Name == "" || len(manifest.Entrypoint) == 0 {
+				continue
 		}
 
 		manifest.WorkingDir = pluginPath
 		plugins = append(plugins, &SubprocessCleaner{manifest: manifest})
 	}
-
 	return plugins
 }
