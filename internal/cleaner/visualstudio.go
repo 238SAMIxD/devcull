@@ -16,7 +16,11 @@ func (c *VisualStudioCleaner) getPaths() []string {
 		return nil
 	}
 
-	base := filepath.Join(os.Getenv("LOCALAPPDATA"), "Microsoft", "VisualStudio")
+	localAppData := os.Getenv("LOCALAPPDATA")
+	if localAppData == "" {
+		return nil
+	}
+	base := filepath.Join(localAppData, "Microsoft", "VisualStudio")
 
 	componentCaches, _ := filepath.Glob(filepath.Join(base, "*", "ComponentModelCache"))
 	designerCaches, _ := filepath.Glob(filepath.Join(base, "*", "Designer", "Cache"))

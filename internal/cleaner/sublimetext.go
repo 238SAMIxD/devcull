@@ -24,7 +24,11 @@ func (c *SublimeCleaner) getPaths() []string {
 			filepath.Join(home, "Library", "Caches", "Sublime Text 3"),
 		}
 	case "windows":
-		return []string{filepath.Join(os.Getenv("LOCALAPPDATA"), "Sublime Text", "Cache")}
+		localAppData := os.Getenv("LOCALAPPDATA")
+		if localAppData == "" {
+			return nil
+		}
+		return []string{filepath.Join(localAppData, "Sublime Text", "Cache")}
 	default:
 		return []string{filepath.Join(home, ".cache", "sublime-text")}
 	}

@@ -21,7 +21,11 @@ func (c *NetBeansCleaner) getPaths() []string {
 	case "darwin":
 		return []string{filepath.Join(home, "Library", "Caches", "NetBeans")}
 	case "windows":
-		return []string{filepath.Join(os.Getenv("LOCALAPPDATA"), "NetBeans", "Cache")}
+		localAppData := os.Getenv("LOCALAPPDATA")
+		if localAppData == "" {
+			return nil
+		}
+		return []string{filepath.Join(localAppData, "NetBeans", "Cache")}
 	default:
 		return []string{filepath.Join(home, ".cache", "netbeans")}
 	}

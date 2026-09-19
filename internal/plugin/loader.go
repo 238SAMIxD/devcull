@@ -11,9 +11,7 @@ import (
 func LoadPlugins() []cleaner.Cleaner {
 	var plugins []cleaner.Cleaner
 
-	if cwd, err := os.Getwd(); err == nil {
-		plugins = append(plugins, loadFromDir(filepath.Join(cwd, "plugins"))...)
-	}
+
 	if configDir, err := os.UserConfigDir(); err == nil {
 		plugins = append(plugins, loadFromDir(filepath.Join(configDir, "devcull", "plugins"))...)
 	}

@@ -21,7 +21,11 @@ func (c *JetBrainsCleaner) getPaths() []string {
 	case "darwin":
 		return []string{filepath.Join(home, "Library", "Caches", "JetBrains")}
 	case "windows":
-		return []string{filepath.Join(os.Getenv("LOCALAPPDATA"), "JetBrains")}
+		localAppData := os.Getenv("LOCALAPPDATA")
+		if localAppData == "" {
+			return nil
+		}
+		return []string{filepath.Join(localAppData, "JetBrains")}
 	default:
 		return []string{filepath.Join(home, ".cache", "JetBrains")}
 	}

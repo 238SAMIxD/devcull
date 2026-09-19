@@ -22,7 +22,11 @@ func (c *VSCodeCleaner) getPaths() []string {
 	case "darwin":
 		baseDir = filepath.Join(home, "Library", "Application Support", "Code")
 	case "windows":
-		baseDir = filepath.Join(os.Getenv("APPDATA"), "Code")
+		appData := os.Getenv("APPDATA")
+		if appData == "" {
+			return nil
+		}
+		baseDir = filepath.Join(appData, "Code")
 	default:
 		baseDir = filepath.Join(home, ".config", "Code")
 	}
