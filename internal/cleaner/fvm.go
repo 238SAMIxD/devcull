@@ -16,10 +16,15 @@ func (f *FvmCleaner) getCachePaths() []string {
 		return nil
 	}
 	
-	return []string{
-		filepath.Join(home, "fvm", "versions"),
-		filepath.Join(home, ".fvm", "versions"),
+	var paths []string
+	if matches, err := filepath.Glob(filepath.Join(home, "fvm", "versions", "*", "bin", "cache")); err == nil {
+		paths = append(paths, matches...)
 	}
+	if matches, err := filepath.Glob(filepath.Join(home, ".fvm", "versions", "*", "bin", "cache")); err == nil {
+		paths = append(paths, matches...)
+	}
+	
+	return paths
 }
 
 func (f *FvmCleaner) IsInstalled() bool {

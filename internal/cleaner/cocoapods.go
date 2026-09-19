@@ -11,28 +11,32 @@ type CocoaPodsCleaner struct{}
 func (c *CocoaPodsCleaner) Name() string { return "CocoaPods" }
 func (c *CocoaPodsCleaner) Category() Category { return CategoryApple }
 
-func (c *CocoaPodsCleaner) getCachePath() string {
+func (c *CocoaPodsCleaner) getCachePaths() []string {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return ""
+		return nil
 	}
 	
 	if runtime.GOOS == "darwin" {
-		return filepath.Join(home, "Library", "Caches", "CocoaPods")
+		return []string{filepath.Join(home, "Library", "Caches", "CocoaPods")}
 	}
 	
-	return filepath.Join(home, ".cocoapods")
+	return nil
 }
 
 func (c *CocoaPodsCleaner) IsInstalled() bool {
-	info, err := os.Stat(c.getCachePath())
-	return err == nil && info.IsDir()
+	for _, p := range c.getCachePaths() {
+		if info, err := os.Stat(p); err == nil && info.IsDir() {
+			return true
+		}
+	}
+	return false
 }
 
 func (c *CocoaPodsCleaner) EstimateReclaimable() (int64, error) {
-	return dirSize(c.getCachePath())
+	return dirsSize(c.getCachePaths()), nil
 }
 
 func (c *CocoaPodsCleaner) Clean(dryRun bool) (int64, error) {
-	return cleanDirs([]string{c.getCachePath()}, dryRun)
+	return cleanDirs(c.getCachePaths(), dryRun)
 }

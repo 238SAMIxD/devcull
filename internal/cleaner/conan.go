@@ -16,8 +16,8 @@ func (c *ConanCleaner) getCachePaths() []string {
 		return nil
 	}
 	return []string{
-		filepath.Join(home, ".conan"),
-		filepath.Join(home, ".conan2"),
+		filepath.Join(home, ".conan", "data"),
+		filepath.Join(home, ".conan2", "p"),
 	}
 }
 
