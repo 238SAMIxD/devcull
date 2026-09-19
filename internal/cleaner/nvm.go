@@ -59,10 +59,15 @@ func (n *NvmCleaner) Clean(dryRun bool) (int64, error) {
 
 	cachePath := n.getCachePath()
 	if cachePath != "" {
-		_ = os.RemoveAll(cachePath)
+		if err := os.RemoveAll(cachePath); err != nil && !os.IsNotExist(err) {
+			return 0, err
+		}
 	}
 
-	after, _ := dirSize(cachePath)
+	after, err := dirSize(cachePath)
+	if err != nil {
+		return 0, err
+	}
 	reclaimed := before - after
 	if reclaimed < 0 {
 		reclaimed = 0

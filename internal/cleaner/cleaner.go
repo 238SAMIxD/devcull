@@ -116,17 +116,26 @@ func dirSize(path string) (int64, error) {
 	var size int64
 	err := filepath.WalkDir(path, func(_ string, d os.DirEntry, err error) error {
 		if err != nil {
+			if os.IsNotExist(err) {
+				return nil
+			}
 			return err
 		}
 		if !d.IsDir() {
 			info, err := d.Info()
 			if err != nil {
+				if os.IsNotExist(err) {
+					return nil
+				}
 				return err
 			}
 			size += info.Size()
 		}
 		return nil
 	})
+	if os.IsNotExist(err) {
+		return size, nil
+	}
 	return size, err
 }
 
@@ -155,7 +164,9 @@ func cleanDirs(paths []string, dryRun bool) (int64, error) {
 	var firstErr error
 	for _, p := range paths {
 		if err := os.RemoveAll(p); err != nil && firstErr == nil {
-			firstErr = err
+			if !os.IsNotExist(err) {
+				firstErr = err
+			}
 		}
 	}
 

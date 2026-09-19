@@ -63,10 +63,15 @@ func (d *DenoCleaner) Clean(dryRun bool) (int64, error) {
 
 	path := d.getCachePath()
 	if path != "" {
-		_ = os.RemoveAll(path)
+		if err := os.RemoveAll(path); err != nil && !os.IsNotExist(err) {
+			return 0, err
+		}
 	}
 
-	after, _ := dirSize(path)
+	after, err := dirSize(path)
+	if err != nil {
+		return 0, err
+	}
 	reclaimed := before - after
 	if reclaimed < 0 {
 		reclaimed = 0

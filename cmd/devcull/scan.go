@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/238SAMIxD/devcull/internal/cleaner"
 	"github.com/238SAMIxD/devcull/internal/engine"
@@ -40,6 +41,7 @@ var scanCmd = &cobra.Command{
 
 		grouped := make(map[cleaner.Category][]engine.ScanResult)
 		var totalReclaimable int64
+		var hasError bool
 
 		for _, r := range results {
 			if r.Skipped && len(args) == 0 {
@@ -48,6 +50,9 @@ var scanCmd = &cobra.Command{
 			grouped[r.Category] = append(grouped[r.Category], r)
 			if r.Err == nil && !r.Skipped {
 				totalReclaimable += r.Reclaimable
+			}
+			if r.Err != nil {
+				hasError = true
 			}
 		}
 
@@ -107,6 +112,10 @@ var scanCmd = &cobra.Command{
 
 		fmt.Printf("\n🎉 Total estimated reclaimable space: %s\n", ui.FormatBytes(totalReclaimable))
 		fmt.Println("Run 'devcull clean' to reclaim this space.")
+
+		if hasError {
+			os.Exit(1)
+		}
 
 		return nil
 	},

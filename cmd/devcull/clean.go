@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/238SAMIxD/devcull/internal/cleaner"
 	"github.com/238SAMIxD/devcull/internal/engine"
@@ -46,6 +47,7 @@ var cleanCmd = &cobra.Command{
 
 		var sessionTotal int64
 		hasArgs := len(args) > 0
+		var hasError bool
 		for _, r := range results {
 			if r.Skipped {
 				if hasArgs {
@@ -55,6 +57,7 @@ var cleanCmd = &cobra.Command{
 			}
 			if r.Err != nil {
 				fmt.Printf("❌ %s failed: %v\n", r.CleanerName, r.Err)
+				hasError = true
 				continue
 			}
 
@@ -74,8 +77,13 @@ var cleanCmd = &cobra.Command{
 			if sessionTotal > 0 {
 				if err := state.Save(); err != nil {
 					fmt.Printf("⚠️ Failed to save stats: %v\n", err)
+					hasError = true
 				}
 			}
+		}
+
+		if hasError {
+			os.Exit(1)
 		}
 
 		return nil
