@@ -17,14 +17,15 @@ func (c *EclipseCleaner) getPaths() []string {
 	}
 
 	return []string{
-		filepath.Join(home, ".eclipse"),
-		filepath.Join(home, ".p2", "pool", "plugins"), 
+		filepath.Join(home, ".eclipse", "org.eclipse.oomph.p2", "cache"),
+		filepath.Join(home, ".eclipse", "org.eclipse.oomph.setup", "cache"),
+		filepath.Join(home, ".p2", "pool", ".cache"),
 	}
 }
 
 func (c *EclipseCleaner) IsInstalled() bool {
 	for _, p := range c.getPaths() {
-		if _, err := os.Stat(p); err == nil {
+		if info, err := os.Stat(p); err == nil && info.IsDir() {
 			return true
 		}
 	}

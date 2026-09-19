@@ -22,7 +22,6 @@ func (c *NeovimCleaner) getPaths() []string {
 	}
 	return []string{
 		filepath.Join(home, ".cache", "nvim"),
-		filepath.Join(home, ".local", "state", "nvim", "swap"),
 	}
 }
 

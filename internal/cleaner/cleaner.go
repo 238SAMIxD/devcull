@@ -107,7 +107,6 @@ func Native() []Cleaner {
 			&VSCodeCleaner{},
 			&NeovimCleaner{},
 			&NetBeansCleaner{},
-			&NotepadPlusPlusCleaner{},
 			&SublimeCleaner{},
 			&VisualStudioCleaner{},
 		}

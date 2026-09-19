@@ -28,7 +28,7 @@ func (d *DockerCleaner) IsInstalled() bool {
 }
 
 func (d *DockerCleaner) EstimateReclaimable() (int64, error) {
-	out, err := exec.Command("docker", "system", "df", "--format", "{{.Reclaimable}}").Output()
+	out, err := exec.Command("docker", "system", "df", "--format", "{{.Type}}|{{.Reclaimable}}").Output()
 	if err != nil {
 		return 0, err
 	}
@@ -36,10 +36,13 @@ func (d *DockerCleaner) EstimateReclaimable() (int64, error) {
 	var totalEstimate int64
 	for _, line := range strings.Split(string(out), "\n") {
 		line = strings.TrimSpace(line)
-		if line == "" {
+		if line == "" || !strings.HasPrefix(line, "Build Cache|") {
 			continue
 		}
-		totalEstimate += utils.ParseByteString(line)
+		parts := strings.SplitN(line, "|", 2)
+		if len(parts) == 2 {
+			totalEstimate += utils.ParseByteString(parts[1])
+		}
 	}
 
 	return totalEstimate, nil
@@ -55,7 +58,7 @@ func (d *DockerCleaner) Clean(dryRun bool) (int64, error) {
 		return reclaimable, nil
 	}
 
-	out, err := exec.Command("docker", "system", "prune", "-f").Output()
+	out, err := exec.Command("docker", "builder", "prune", "-a", "-f").Output()
 	if err != nil {
 		return 0, err
 	}
