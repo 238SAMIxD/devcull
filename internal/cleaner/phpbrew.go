@@ -7,7 +7,7 @@ import (
 
 type PhpbrewCleaner struct{}
 
-func (p *PhpbrewCleaner) Name() string { return "phpbrew" }
+func (p *PhpbrewCleaner) Name() string       { return "phpbrew" }
 func (p *PhpbrewCleaner) Category() Category { return CategoryPHP }
 
 func (p *PhpbrewCleaner) getCachePaths() []string {
@@ -32,7 +32,7 @@ func (p *PhpbrewCleaner) IsInstalled() bool {
 }
 
 func (p *PhpbrewCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(p.getCachePaths()), nil
+	return dirsSize(p.getCachePaths())
 }
 
 func (p *PhpbrewCleaner) Clean(dryRun bool) (int64, error) {

@@ -7,7 +7,7 @@ import (
 
 type CcacheCleaner struct{}
 
-func (c *CcacheCleaner) Name() string { return "Ccache" }
+func (c *CcacheCleaner) Name() string       { return "Ccache" }
 func (c *CcacheCleaner) Category() Category { return CategoryCpp }
 
 func (c *CcacheCleaner) getCachePaths() []string {
@@ -15,14 +15,14 @@ func (c *CcacheCleaner) getCachePaths() []string {
 	if err != nil {
 		return nil
 	}
-	
+
 	paths := []string{
 		filepath.Join(home, ".ccache"),
 		filepath.Join(home, ".cache", "ccache"),
 	}
-	
+
 	paths = append(paths, filepath.Join(home, "Library", "Caches", "ccache"))
-	
+
 	return paths
 }
 
@@ -36,7 +36,7 @@ func (c *CcacheCleaner) IsInstalled() bool {
 }
 
 func (c *CcacheCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(c.getCachePaths()), nil
+	return dirsSize(c.getCachePaths())
 }
 
 func (c *CcacheCleaner) Clean(dryRun bool) (int64, error) {

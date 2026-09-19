@@ -8,7 +8,7 @@ import (
 
 type XcodeCleaner struct{}
 
-func (x *XcodeCleaner) Name() string { return "Xcode" }
+func (x *XcodeCleaner) Name() string       { return "Xcode" }
 func (x *XcodeCleaner) Category() Category { return CategoryApple }
 
 func (x *XcodeCleaner) getCachePaths() []string {
@@ -20,7 +20,7 @@ func (x *XcodeCleaner) getCachePaths() []string {
 	if err != nil {
 		return nil
 	}
-	
+
 	return []string{
 		filepath.Join(home, "Library", "Developer", "Xcode", "DerivedData"),
 		filepath.Join(home, "Library", "Developer", "Xcode", "iOS DeviceSupport"),
@@ -39,7 +39,7 @@ func (x *XcodeCleaner) IsInstalled() bool {
 }
 
 func (x *XcodeCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(x.getCachePaths()), nil
+	return dirsSize(x.getCachePaths())
 }
 
 func (x *XcodeCleaner) Clean(dryRun bool) (int64, error) {

@@ -39,7 +39,7 @@ func (d *DenoCleaner) getCachePath() string {
 	if d, err := os.UserCacheDir(); err == nil {
 		return filepath.Join(d, "deno")
 	}
-	
+
 	return filepath.Join(home, ".cache", "deno")
 }
 

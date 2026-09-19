@@ -9,18 +9,18 @@ import (
 type Category string
 
 const (
-	CategoryNode   Category = "Node"
-	CategoryPython Category = "Python"
-	CategoryJava   Category = "Java"
-	CategoryCpp    Category = "C++"
-	CategoryCSharp Category = "C#"
-	CategoryGo     Category = "Go"
-	CategoryRust   Category = "Rust"
-	CategoryFlutter	 Category = "Flutter"
-	CategoryPHP    Category = "PHP"
-	CategoryApple  Category = "Apple Ecosystem"
-	CategoryIDE        Category = "IDE"
-	CategorySystem Category = "System & DevOps"
+	CategoryNode    Category = "Node"
+	CategoryPython  Category = "Python"
+	CategoryJava    Category = "Java"
+	CategoryCpp     Category = "C++"
+	CategoryCSharp  Category = "C#"
+	CategoryGo      Category = "Go"
+	CategoryRust    Category = "Rust"
+	CategoryFlutter Category = "Flutter"
+	CategoryPHP     Category = "PHP"
+	CategoryApple   Category = "Apple Ecosystem"
+	CategoryIDE     Category = "IDE"
+	CategorySystem  Category = "System & DevOps"
 )
 
 func AllCategories() []Category {
@@ -50,110 +50,125 @@ type Cleaner interface {
 
 func Native() []Cleaner {
 	return []Cleaner{
-			// Node.js
-			&NvmCleaner{},
-			&NpmCleaner{},
-			&PnpmCleaner{},
-			&YarnCleaner{},
-			&BunCleaner{},
-			&DenoCleaner{},
+		// Node.js
+		&NvmCleaner{},
+		&NpmCleaner{},
+		&PnpmCleaner{},
+		&YarnCleaner{},
+		&BunCleaner{},
+		&DenoCleaner{},
 
-		 	// Go
-			&GoCleaner{},
+		// Go
+		&GoCleaner{},
 
-			// Rust
-			&CargoCleaner{},
+		// Rust
+		&CargoCleaner{},
 
-			// System
-			&BrewCleaner{},
-			&DockerCleaner{},
-			
-			// Python
-			&PipCleaner{},
-			&UvCleaner{},
-			&PoetryCleaner{},
+		// System
+		&BrewCleaner{},
+		&DockerCleaner{},
 
-			// C/C++
-			&UnrealCleaner{},
-			&CcacheCleaner{},
-			&ConanCleaner{},
+		// Python
+		&PipCleaner{},
+		&UvCleaner{},
+		&PoetryCleaner{},
 
-			// C#
-			&DotnetCleaner{},
-			&UnityCleaner{},
+		// C/C++
+		&UnrealCleaner{},
+		&CcacheCleaner{},
+		&ConanCleaner{},
 
-			// Java
-      &MavenCleaner{},
-      &GradleCleaner{},
-      &KotlinCleaner{},
-      &AndroidCleaner{},
+		// C#
+		&DotnetCleaner{},
+		&UnityCleaner{},
 
-			// Flutter
-			&DartCleaner{},
-			&FvmCleaner{},
+		// Java
+		&MavenCleaner{},
+		&GradleCleaner{},
+		&KotlinCleaner{},
+		&AndroidCleaner{},
 
-			// Apple
-			&CocoaPodsCleaner{},
-			&SwiftPMCleaner{},
-			&XcodeCleaner{},
+		// Flutter
+		&DartCleaner{},
+		&FvmCleaner{},
 
-			// PHP
-			&ComposerCleaner{},
-			&PhpbrewCleaner{},
+		// Apple
+		&CocoaPodsCleaner{},
+		&SwiftPMCleaner{},
+		&XcodeCleaner{},
 
-			// IDE
-			&EclipseCleaner{},
-			&JetBrainsCleaner{},
-			&VSCodeCleaner{},
-			&NeovimCleaner{},
-			&NetBeansCleaner{},
-			&SublimeCleaner{},
-			&VisualStudioCleaner{},
-		}
+		// PHP
+		&ComposerCleaner{},
+		&PhpbrewCleaner{},
+
+		// IDE
+		&EclipseCleaner{},
+		&JetBrainsCleaner{},
+		&VSCodeCleaner{},
+		&NeovimCleaner{},
+		&NetBeansCleaner{},
+		&SublimeCleaner{},
+		&VisualStudioCleaner{},
 	}
+}
 
 func dirSize(path string) (int64, error) {
 	var size int64
 	err := filepath.WalkDir(path, func(_ string, d os.DirEntry, err error) error {
 		if err != nil {
-			return nil
+			return err
 		}
 		if !d.IsDir() {
 			info, err := d.Info()
-			if err == nil {
-				size += info.Size()
+			if err != nil {
+				return err
 			}
+			size += info.Size()
 		}
 		return nil
 	})
 	return size, err
 }
 
-func dirsSize(paths []string) int64 {
+func dirsSize(paths []string) (int64, error) {
 	var total int64
+	var firstErr error
 	for _, p := range paths {
-		size, _ := dirSize(p)
+		size, err := dirSize(p)
+		if err != nil && firstErr == nil {
+			firstErr = err
+		}
 		total += size
 	}
-	return total
+	return total, firstErr
 }
 
 func cleanDirs(paths []string, dryRun bool) (int64, error) {
-	before := dirsSize(paths)
+	before, err := dirsSize(paths)
+	if err != nil {
+		return before, err
+	}
 	if before == 0 || dryRun {
 		return before, nil
 	}
 
+	var firstErr error
 	for _, p := range paths {
-		_ = os.RemoveAll(p)
+		if err := os.RemoveAll(p); err != nil && firstErr == nil {
+			firstErr = err
+		}
 	}
 
-	after := dirsSize(paths)
+	after, err := dirsSize(paths)
+	if err != nil && firstErr == nil {
+		firstErr = err
+	}
+
 	reclaimed := before - after
 	if reclaimed < 0 {
 		reclaimed = 0
 	}
-	return reclaimed, nil
+	return reclaimed, firstErr
 }
 
 func MatchesArg(cleaner Cleaner, arg string) bool {
@@ -213,4 +228,3 @@ func MatchesArg(cleaner Cleaner, arg string) bool {
 
 	return false
 }
-

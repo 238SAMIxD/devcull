@@ -41,7 +41,7 @@ func loadFromDir(dir string) []cleaner.Cleaner {
 
 		var manifest Manifest
 		if err := json.Unmarshal(data, &manifest); err != nil || manifest.Name == "" || len(manifest.Entrypoint) == 0 {
-				continue
+			continue
 		}
 
 		manifest.WorkingDir = pluginPath

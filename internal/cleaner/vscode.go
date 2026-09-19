@@ -44,7 +44,7 @@ func (c *VSCodeCleaner) IsInstalled() bool {
 }
 
 func (c *VSCodeCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(c.getPaths()), nil
+	return dirsSize(c.getPaths())
 }
 
 func (c *VSCodeCleaner) Clean(dryRun bool) (int64, error) {

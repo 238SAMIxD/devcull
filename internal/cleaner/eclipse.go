@@ -33,7 +33,7 @@ func (c *EclipseCleaner) IsInstalled() bool {
 }
 
 func (c *EclipseCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(c.getPaths()), nil
+	return dirsSize(c.getPaths())
 }
 
 func (c *EclipseCleaner) Clean(dryRun bool) (int64, error) {

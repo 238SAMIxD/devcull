@@ -10,7 +10,7 @@ import (
 
 func TestSubprocessCleaner(t *testing.T) {
 	tempDir := t.TempDir()
-	
+
 	mockScript := filepath.Join(tempDir, "mock.sh")
 	scriptContent := `#!/bin/bash
 case "$1" in

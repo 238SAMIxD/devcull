@@ -20,7 +20,7 @@ func (n *NvmCleaner) IsInstalled() bool {
 	if err != nil {
 		return false
 	}
-	
+
 	nvmDir := filepath.Join(home, ".nvm")
 	info, err := os.Stat(nvmDir)
 	return err == nil && info.IsDir()
@@ -39,7 +39,7 @@ func (n *NvmCleaner) EstimateReclaimable() (int64, error) {
 	if cachePath == "" {
 		return 0, nil
 	}
-	
+
 	if _, err := os.Stat(cachePath); os.IsNotExist(err) {
 		return 0, nil
 	}

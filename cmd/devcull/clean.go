@@ -17,7 +17,7 @@ var cleanCmd = &cobra.Command{
 	Short: "Run the cleaners (optionally specify which tools to clean)",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		allCleaners := getAllCleaners()
-		
+
 		var activeCleaners []cleaner.Cleaner
 		if len(args) > 0 {
 			for _, c := range allCleaners {
@@ -37,12 +37,12 @@ var cleanCmd = &cobra.Command{
 			activeCleaners = allCleaners
 		}
 
-		results := engine.Run(activeCleaners, dryRun)
-
 		state, err := stats.Load()
 		if err != nil {
 			return fmt.Errorf("failed to load stats: %w", err)
 		}
+
+		results := engine.Run(activeCleaners, dryRun)
 
 		var sessionTotal int64
 		hasArgs := len(args) > 0

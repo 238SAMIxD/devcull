@@ -37,10 +37,9 @@ func (c *JetBrainsCleaner) IsInstalled() bool {
 }
 
 func (c *JetBrainsCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(c.getPaths()), nil
+	return dirsSize(c.getPaths())
 }
 
 func (c *JetBrainsCleaner) Clean(dryRun bool) (int64, error) {
 	return cleanDirs(c.getPaths(), dryRun)
 }
-

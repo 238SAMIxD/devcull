@@ -8,7 +8,7 @@ import (
 
 type SwiftPMCleaner struct{}
 
-func (s *SwiftPMCleaner) Name() string { return "SwiftPM" }
+func (s *SwiftPMCleaner) Name() string       { return "SwiftPM" }
 func (s *SwiftPMCleaner) Category() Category { return CategoryApple }
 
 func (s *SwiftPMCleaner) getCachePaths() []string {
@@ -21,7 +21,7 @@ func (s *SwiftPMCleaner) getCachePaths() []string {
 	if err != nil {
 		return nil
 	}
-	
+
 	return []string{
 		filepath.Join(home, "Library", "Caches", "org.swift.swiftpm"),
 		filepath.Join(home, "Library", "org.swift.swiftpm"),
@@ -38,7 +38,7 @@ func (s *SwiftPMCleaner) IsInstalled() bool {
 }
 
 func (s *SwiftPMCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(s.getCachePaths()), nil
+	return dirsSize(s.getCachePaths())
 }
 
 func (s *SwiftPMCleaner) Clean(dryRun bool) (int64, error) {

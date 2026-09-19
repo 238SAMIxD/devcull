@@ -7,11 +7,11 @@ type mockCleaner struct {
 	category Category
 }
 
-func (m *mockCleaner) Name() string           { return m.name }
-func (m *mockCleaner) Category() Category     { return m.category }
-func (m *mockCleaner) IsInstalled() bool      { return true }
+func (m *mockCleaner) Name() string                        { return m.name }
+func (m *mockCleaner) Category() Category                  { return m.category }
+func (m *mockCleaner) IsInstalled() bool                   { return true }
 func (m *mockCleaner) EstimateReclaimable() (int64, error) { return 0, nil }
-func (m *mockCleaner) Clean(dryRun bool) (int64, error) { return 0, nil }
+func (m *mockCleaner) Clean(dryRun bool) (int64, error)    { return 0, nil }
 
 func TestMatchesArg(t *testing.T) {
 	tests := []struct {
@@ -20,18 +20,15 @@ func TestMatchesArg(t *testing.T) {
 		arg     string
 		want    bool
 	}{
-		// 1. Name matches
 		{"exact name", &mockCleaner{"Pip", CategoryPython}, "pip", true},
 		{"name case insensitive", &mockCleaner{"Homebrew", CategorySystem}, "HOMEBREW", true},
 		{"name with spaces", &mockCleaner{"Docker", CategorySystem}, "  docker  ", true},
-		
-		// 2. Category matches
+
 		{"exact category", &mockCleaner{"Pip", CategoryPython}, "python", true},
 		{"category partial (prefix)", &mockCleaner{"NPM", CategoryNode}, "node", true},
 		{"category alias (devops)", &mockCleaner{"Docker", CategorySystem}, "devops", true},
 		{"category case insensitive", &mockCleaner{"Cargo", CategoryRust}, "RUST", true},
 
-		// 3. Explicit aliases
 		{"brew -> homebrew", &mockCleaner{"Homebrew", CategorySystem}, "brew", true},
 		{"macos -> apple category", &mockCleaner{"Xcode", CategoryApple}, "macos", true},
 		{"py -> python category", &mockCleaner{"Poetry", CategoryPython}, "py", true},
@@ -43,17 +40,14 @@ func TestMatchesArg(t *testing.T) {
 		{"c# -> dotnet category", &mockCleaner{"Dotnet", CategoryCSharp}, "c#", true},
 		{"nuget -> dotnet category", &mockCleaner{"Dotnet", CategoryCSharp}, "nuget", true},
 		{"golang -> go category", &mockCleaner{"Go", CategoryGo}, "golang", true},
-		
-		// Apple specific
+
 		{"ios -> apple category", &mockCleaner{"Xcode", CategoryApple}, "ios", true},
 		{"mac -> cocoapods", &mockCleaner{"CocoaPods", CategorySystem}, "mac", true},
 
-		// 4. Non-matches
 		{"wrong name", &mockCleaner{"Pip", CategoryPython}, "npm", false},
 		{"wrong category", &mockCleaner{"Pip", CategoryPython}, "rust", false},
 		{"unrelated alias", &mockCleaner{"Cargo", CategoryRust}, "brew", false},
 
-		// 5. Regression: short args must not cross-match via substring
 		{"c must not match apple", &mockCleaner{"Xcode", CategoryApple}, "c", false},
 		{"c must not match c#", &mockCleaner{"Dotnet", CategoryCSharp}, "c", false},
 		{"o must not match python", &mockCleaner{"Pip", CategoryPython}, "o", false},

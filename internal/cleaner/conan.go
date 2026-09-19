@@ -7,7 +7,7 @@ import (
 
 type ConanCleaner struct{}
 
-func (c *ConanCleaner) Name() string { return "Conan" }
+func (c *ConanCleaner) Name() string       { return "Conan" }
 func (c *ConanCleaner) Category() Category { return CategoryCpp }
 
 func (c *ConanCleaner) getCachePaths() []string {
@@ -31,7 +31,7 @@ func (c *ConanCleaner) IsInstalled() bool {
 }
 
 func (c *ConanCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(c.getCachePaths()), nil
+	return dirsSize(c.getCachePaths())
 }
 
 func (c *ConanCleaner) Clean(dryRun bool) (int64, error) {

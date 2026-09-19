@@ -51,7 +51,33 @@ var scanCmd = &cobra.Command{
 			}
 		}
 
+		var displayCategories []cleaner.Category
+		knownMap := make(map[cleaner.Category]bool)
+
 		for _, cat := range cleaner.AllCategories() {
+			if _, exists := grouped[cat]; exists {
+				displayCategories = append(displayCategories, cat)
+			}
+			knownMap[cat] = true
+		}
+
+		var customCats []cleaner.Category
+		for cat := range grouped {
+			if !knownMap[cat] {
+				customCats = append(customCats, cat)
+			}
+		}
+
+		for i := 0; i < len(customCats)-1; i++ {
+			for j := i + 1; j < len(customCats); j++ {
+				if customCats[i] > customCats[j] {
+					customCats[i], customCats[j] = customCats[j], customCats[i]
+				}
+			}
+		}
+		displayCategories = append(displayCategories, customCats...)
+
+		for _, cat := range displayCategories {
 			catResults, exists := grouped[cat]
 			if !exists || len(catResults) == 0 {
 				continue
@@ -65,7 +91,7 @@ var scanCmd = &cobra.Command{
 			}
 
 			fmt.Printf("\n=== %s [%s] ===\n", cat, ui.FormatBytes(catTotal))
-			
+
 			for _, r := range catResults {
 				if r.Skipped {
 					fmt.Printf("⏭️  %-12s not installed\n", r.CleanerName)

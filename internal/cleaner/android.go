@@ -7,7 +7,7 @@ import (
 
 type AndroidCleaner struct{}
 
-func (a *AndroidCleaner) Name() string { return "Android" }
+func (a *AndroidCleaner) Name() string       { return "Android" }
 func (a *AndroidCleaner) Category() Category { return CategoryJava }
 
 func (a *AndroidCleaner) getCachePaths() []string {
@@ -31,7 +31,7 @@ func (a *AndroidCleaner) IsInstalled() bool {
 }
 
 func (a *AndroidCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(a.getCachePaths()), nil
+	return dirsSize(a.getCachePaths())
 }
 
 func (a *AndroidCleaner) Clean(dryRun bool) (int64, error) {

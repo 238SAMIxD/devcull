@@ -7,7 +7,7 @@ import (
 
 type KotlinCleaner struct{}
 
-func (k *KotlinCleaner) Name() string { return "Kotlin" }
+func (k *KotlinCleaner) Name() string       { return "Kotlin" }
 func (k *KotlinCleaner) Category() Category { return CategoryJava }
 
 func (k *KotlinCleaner) getCachePath() string {

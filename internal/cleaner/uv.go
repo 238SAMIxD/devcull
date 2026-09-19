@@ -11,7 +11,6 @@ func (u *UvCleaner) Name() string {
 	return "uv"
 }
 
-
 func (u *UvCleaner) Category() Category {
 	return CategoryPython
 }

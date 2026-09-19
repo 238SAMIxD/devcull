@@ -41,12 +41,7 @@ func (g *GoCleaner) getCachePaths() []string {
 }
 
 func (g *GoCleaner) EstimateReclaimable() (int64, error) {
-	var total int64
-	for _, p := range g.getCachePaths() {
-		size, _ := dirSize(p)
-		total += size
-	}
-	return total, nil
+	return dirsSize(g.getCachePaths())
 }
 
 func (g *GoCleaner) Clean(dryRun bool) (int64, error) {
@@ -63,10 +58,9 @@ func (g *GoCleaner) Clean(dryRun bool) (int64, error) {
 		return 0, err
 	}
 
-	var after int64
-	for _, p := range g.getCachePaths() {
-		size, _ := dirSize(p)
-		after += size
+	after, err := dirsSize(g.getCachePaths())
+	if err != nil {
+		return 0, err
 	}
 	reclaimed := before - after
 	if reclaimed < 0 {

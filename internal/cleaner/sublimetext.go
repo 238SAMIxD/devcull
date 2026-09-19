@@ -39,7 +39,7 @@ func (c *SublimeCleaner) IsInstalled() bool {
 	return false
 }
 func (c *SublimeCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(c.getPaths()), nil
+	return dirsSize(c.getPaths())
 }
 
 func (c *SublimeCleaner) Clean(dryRun bool) (int64, error) {

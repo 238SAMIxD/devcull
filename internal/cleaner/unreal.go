@@ -8,7 +8,7 @@ import (
 
 type UnrealCleaner struct{}
 
-func (u *UnrealCleaner) Name() string { return "Unreal Engine" }
+func (u *UnrealCleaner) Name() string       { return "Unreal Engine" }
 func (u *UnrealCleaner) Category() Category { return CategoryCpp }
 
 func (u *UnrealCleaner) getCachePaths() []string {
@@ -42,7 +42,7 @@ func (u *UnrealCleaner) IsInstalled() bool {
 }
 
 func (u *UnrealCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(u.getCachePaths()), nil
+	return dirsSize(u.getCachePaths())
 }
 
 func (u *UnrealCleaner) Clean(dryRun bool) (int64, error) {

@@ -46,7 +46,7 @@ func (p *PoetryCleaner) EstimateReclaimable() (int64, error) {
 	if len(paths) == 0 {
 		return 0, nil
 	}
-	return dirsSize(paths), nil
+	return dirsSize(paths)
 }
 
 func (p *PoetryCleaner) Clean(dryRun bool) (int64, error) {

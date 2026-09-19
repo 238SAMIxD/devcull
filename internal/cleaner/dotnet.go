@@ -33,7 +33,7 @@ func (d *DotnetCleaner) getCachePaths() []string {
 
 	var paths []string
 	lines := strings.Split(string(out), "\n")
-	
+
 	prefixes := []string{"http-cache:", "global-packages:", "temp:", "plugins-cache:"}
 
 	for _, line := range lines {
@@ -51,14 +51,7 @@ func (d *DotnetCleaner) getCachePaths() []string {
 }
 
 func (d *DotnetCleaner) EstimateReclaimable() (int64, error) {
-	paths := d.getCachePaths()
-	var total int64
-	for _, p := range paths {
-		size, _ := dirSize(p)
-		total += size
-	}
-
-	return total, nil
+	return dirsSize(d.getCachePaths())
 }
 
 func (d *DotnetCleaner) Clean(dryRun bool) (int64, error) {
@@ -75,10 +68,9 @@ func (d *DotnetCleaner) Clean(dryRun bool) (int64, error) {
 		return 0, err
 	}
 
-	var after int64
-	for _, p := range d.getCachePaths() {
-		size, _ := dirSize(p)
-		after += size
+	after, err := dirsSize(d.getCachePaths())
+	if err != nil {
+		return 0, err
 	}
 	reclaimed := before - after
 	if reclaimed < 0 {

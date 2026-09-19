@@ -7,7 +7,7 @@ import (
 
 type GradleCleaner struct{}
 
-func (g *GradleCleaner) Name() string { return "Gradle" }
+func (g *GradleCleaner) Name() string       { return "Gradle" }
 func (g *GradleCleaner) Category() Category { return CategoryJava }
 
 func (g *GradleCleaner) getCachePath() string {

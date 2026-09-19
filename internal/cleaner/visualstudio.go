@@ -17,10 +17,10 @@ func (c *VisualStudioCleaner) getPaths() []string {
 	}
 
 	base := filepath.Join(os.Getenv("LOCALAPPDATA"), "Microsoft", "VisualStudio")
-	
+
 	componentCaches, _ := filepath.Glob(filepath.Join(base, "*", "ComponentModelCache"))
 	designerCaches, _ := filepath.Glob(filepath.Join(base, "*", "Designer", "Cache"))
-	
+
 	return append(componentCaches, designerCaches...)
 }
 
@@ -33,7 +33,7 @@ func (c *VisualStudioCleaner) IsInstalled() bool {
 	return false
 }
 func (c *VisualStudioCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(c.getPaths()), nil
+	return dirsSize(c.getPaths())
 }
 
 func (c *VisualStudioCleaner) Clean(dryRun bool) (int64, error) {

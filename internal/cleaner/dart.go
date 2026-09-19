@@ -8,7 +8,7 @@ import (
 
 type DartCleaner struct{}
 
-func (p *DartCleaner) Name() string { return "Dart" }
+func (p *DartCleaner) Name() string       { return "Dart" }
 func (p *DartCleaner) Category() Category { return CategoryFlutter }
 
 func (p *DartCleaner) getCachePaths() []string {
@@ -37,7 +37,7 @@ func (p *DartCleaner) IsInstalled() bool {
 }
 
 func (p *DartCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(p.getCachePaths()), nil
+	return dirsSize(p.getCachePaths())
 }
 
 func (p *DartCleaner) Clean(dryRun bool) (int64, error) {

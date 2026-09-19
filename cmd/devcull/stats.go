@@ -50,7 +50,7 @@ var statsCmd = &cobra.Command{
 			if groupedStats[cat] == nil {
 				groupedStats[cat] = make(map[string]int64)
 			}
-			
+
 			groupedStats[cat][toolName] = toolStat.TotalReclaimed
 			categoryTotals[cat] += toolStat.TotalReclaimed
 		}
@@ -69,12 +69,12 @@ var statsCmd = &cobra.Command{
 			}
 
 			fmt.Printf("\n=== %s [%s] ===\n", cat, ui.FormatBytes(categoryTotals[cat]))
-			
+
 			var entries []statEntry
 			for name, reclaimed := range toolsInCat {
 				entries = append(entries, statEntry{name, reclaimed})
 			}
-			
+
 			sort.Slice(entries, func(i, j int) bool {
 				if entries[i].reclaimed == entries[j].reclaimed {
 					return entries[i].name < entries[j].name

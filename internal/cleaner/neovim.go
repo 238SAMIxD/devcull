@@ -34,7 +34,7 @@ func (c *NeovimCleaner) IsInstalled() bool {
 	return false
 }
 func (c *NeovimCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(c.getPaths()), nil
+	return dirsSize(c.getPaths())
 }
 
 func (c *NeovimCleaner) Clean(dryRun bool) (int64, error) {

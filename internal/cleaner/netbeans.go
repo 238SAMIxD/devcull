@@ -36,7 +36,7 @@ func (c *NetBeansCleaner) IsInstalled() bool {
 	return false
 }
 func (c *NetBeansCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(c.getPaths()), nil
+	return dirsSize(c.getPaths())
 }
 
 func (c *NetBeansCleaner) Clean(dryRun bool) (int64, error) {

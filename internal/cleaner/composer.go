@@ -8,7 +8,7 @@ import (
 
 type ComposerCleaner struct{}
 
-func (c *ComposerCleaner) Name() string { return "Composer" }
+func (c *ComposerCleaner) Name() string       { return "Composer" }
 func (c *ComposerCleaner) Category() Category { return CategoryPHP }
 
 func (c *ComposerCleaner) getCachePaths() []string {
@@ -44,7 +44,7 @@ func (c *ComposerCleaner) IsInstalled() bool {
 }
 
 func (c *ComposerCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(c.getCachePaths()), nil
+	return dirsSize(c.getCachePaths())
 }
 
 func (c *ComposerCleaner) Clean(dryRun bool) (int64, error) {

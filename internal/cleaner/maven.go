@@ -7,7 +7,7 @@ import (
 
 type MavenCleaner struct{}
 
-func (m *MavenCleaner) Name() string { return "Maven" }
+func (m *MavenCleaner) Name() string       { return "Maven" }
 func (m *MavenCleaner) Category() Category { return CategoryJava }
 
 func (m *MavenCleaner) getCachePath() string {

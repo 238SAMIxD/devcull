@@ -13,7 +13,7 @@
 
 ## Installation
 
-**Requires Go 1.21+**
+**Requires Go 1.27.1+**
 
 ```bash
 go install github.com/238SAMIxD/devcull/cmd/devcull@latest

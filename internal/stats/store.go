@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+
+	"github.com/gofrs/flock"
 )
 
 type ToolStats struct {
@@ -21,12 +23,12 @@ func getStateFilePath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	
+
 	dir := filepath.Join(configDir, "devcull")
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return "", err
 	}
-	
+
 	return filepath.Join(dir, "stats.json"), nil
 }
 
@@ -47,11 +49,11 @@ func Load() (*State, error) {
 	if err := json.Unmarshal(b, &s); err != nil {
 		return nil, err
 	}
-	
+
 	if s.Tools == nil {
 		s.Tools = make(map[string]*ToolStats)
 	}
-	
+
 	return &s, nil
 }
 
@@ -59,17 +61,17 @@ func (s *State) AddRun(tool string, reclaimed int64) {
 	if reclaimed <= 0 {
 		return
 	}
-	
+
 	s.AllTimeTotal += reclaimed
-	
+
 	ts, exists := s.Tools[tool]
 	if !exists {
 		ts = &ToolStats{}
 		s.Tools[tool] = ts
 	}
-	
+
 	ts.TotalReclaimed += reclaimed
-	
+
 	ts.RecentRuns = append([]int64{reclaimed}, ts.RecentRuns...)
 	if len(ts.RecentRuns) > 3 {
 		ts.RecentRuns = ts.RecentRuns[:3]
@@ -81,6 +83,12 @@ func (s *State) Save() error {
 	if err != nil {
 		return err
 	}
+
+	lock := flock.New(path + ".lock")
+	if err := lock.Lock(); err != nil {
+		return err
+	}
+	defer lock.Unlock()
 
 	b, err := json.MarshalIndent(s, "", "  ")
 	if err != nil {
