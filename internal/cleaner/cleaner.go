@@ -199,14 +199,14 @@ func isSafeToDelete(targetPath string) bool {
 	}
 
 	if os.PathSeparator == '/' {
-		exactMatchRoots = append(exactMatchRoots, "/Users")
+		exactMatchRoots = append(exactMatchRoots, "/Users", "/Library", "/tmp", "/var")
 		prefixMatchTrees = append(prefixMatchTrees,
 			"/usr", "/usr/bin", "/usr/lib", "/usr/local", "/usr/local/bin",
-			"/bin", "/sbin", "/etc", "/var", "/tmp", "/Library", "/System",
+			"/bin", "/sbin", "/etc", "/System",
 			"/Applications", "/Network", "/Volumes",
 		)
 		if err == nil {
-			prefixMatchTrees = append(prefixMatchTrees, filepath.Join(home, "Library"))
+			exactMatchRoots = append(exactMatchRoots, filepath.Join(home, "Library"))
 		}
 	} else if os.PathSeparator == '\\' {
 		sysRoot := os.Getenv("SystemRoot")
@@ -222,6 +222,12 @@ func isSafeToDelete(targetPath string) bool {
 			progFiles86 = `C:\Program Files (x86)`
 		}
 		exactMatchRoots = append(exactMatchRoots, `C:\Users`)
+		if appData := os.Getenv("APPDATA"); appData != "" {
+			exactMatchRoots = append(exactMatchRoots, appData)
+		}
+		if localAppData := os.Getenv("LOCALAPPDATA"); localAppData != "" {
+			exactMatchRoots = append(exactMatchRoots, localAppData)
+		}
 		prefixMatchTrees = append(prefixMatchTrees,
 			sysRoot,
 			filepath.Join(sysRoot, "System32"),
@@ -229,7 +235,7 @@ func isSafeToDelete(targetPath string) bool {
 			progFiles86,
 		)
 		if err == nil {
-			prefixMatchTrees = append(prefixMatchTrees, filepath.Join(home, "AppData"))
+			exactMatchRoots = append(exactMatchRoots, filepath.Join(home, "AppData"))
 		}
 	}
 
