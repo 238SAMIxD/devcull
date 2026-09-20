@@ -50,11 +50,22 @@ var cleanCmd = &cobra.Command{
 			fmt.Println("Scanning...")
 			scanResults := engine.Scan(ctx, activeCleaners)
 			var totalReclaimable int64
+			var scanErr error
 			for _, r := range scanResults {
-				if !r.Skipped && r.Err == nil {
+				if r.Err != nil {
+					scanErr = r.Err
+					break
+				}
+				if !r.Skipped {
 					totalReclaimable += r.Reclaimable
 				}
 			}
+
+			if scanErr != nil {
+				fmt.Printf("❌ Preflight scan failed: %v\n", scanErr)
+				os.Exit(1)
+			}
+
 			if totalReclaimable == 0 {
 				fmt.Println("Nothing to clean.")
 				return nil

@@ -244,6 +244,47 @@ func isSafeToDelete(targetPath string) bool {
 	return false
 }
 
+func removeAllCtx(ctx context.Context, path string) error {
+	var dirs []string
+	err := filepath.WalkDir(path, func(p string, d os.DirEntry, err error) error {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+		if err != nil {
+			if os.IsNotExist(err) {
+				return nil
+			}
+			return err
+		}
+		if d.IsDir() {
+			dirs = append(dirs, p)
+			return nil
+		}
+		if err := os.Remove(p); err != nil && !os.IsNotExist(err) {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	for i := len(dirs) - 1; i >= 0; i-- {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+		if err := os.Remove(dirs[i]); err != nil && !os.IsNotExist(err) {
+			return err
+		}
+	}
+	return nil
+}
+
 func cleanDirs(ctx context.Context, paths []string, dryRun bool) (int64, error) {
 	var safePaths []string
 	for _, p := range paths {
@@ -277,7 +318,7 @@ func cleanDirs(ctx context.Context, paths []string, dryRun bool) (int64, error) 
 			continue
 		}
 		abs = filepath.Clean(abs)
-		if err := os.RemoveAll(abs); err != nil && firstErr == nil {
+		if err := removeAllCtx(ctx, abs); err != nil && firstErr == nil {
 			if !os.IsNotExist(err) {
 				firstErr = err
 			}
@@ -289,7 +330,7 @@ func cleanDirs(ctx context.Context, paths []string, dryRun bool) (int64, error) 
 		if firstErr == nil {
 			firstErr = err
 		}
-		return 0, firstErr
+		after = 0
 	}
 
 	reclaimed := before - after
