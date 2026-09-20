@@ -2,6 +2,7 @@ package stats
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 
@@ -46,8 +47,10 @@ func Load() (*State, error) {
 			bBak, errBak := os.ReadFile(path + ".bak")
 			if errBak == nil {
 				b = bBak
-			} else {
+			} else if errors.Is(errBak, os.ErrNotExist) {
 				return &State{Tools: make(map[string]*ToolStats)}, nil
+			} else {
+				return nil, errBak
 			}
 		} else {
 			return nil, err
@@ -83,8 +86,11 @@ func LoadAndLock() (*State, error) {
 			bBak, errBak := os.ReadFile(path + ".bak")
 			if errBak == nil {
 				b = bBak
-			} else {
+			} else if errors.Is(errBak, os.ErrNotExist) {
 				return &State{Tools: make(map[string]*ToolStats), lock: lock}, nil
+			} else {
+				lock.Unlock()
+				return nil, errBak
 			}
 		} else {
 			lock.Unlock()
