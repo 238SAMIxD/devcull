@@ -55,10 +55,13 @@ func (n *NpmCleaner) Clean(dryRun bool) (int64, error) {
 		return 0, err
 	}
 
-	after, _ := dirSize(n.getCachePath())
+	after, err := dirSize(n.getCachePath())
+	if err != nil && after == 0 {
+		after = before
+	}
 	reclaimed := before - after
 	if reclaimed < 0 {
 		reclaimed = 0
 	}
-	return reclaimed, nil
+	return reclaimed, err
 }

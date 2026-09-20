@@ -206,19 +206,25 @@ func MatchesArg(cleaner Cleaner, arg string) bool {
 		return cleaner.Category() == CategoryCSharp
 	case "golang":
 		return cleaner.Category() == CategoryGo
-	case "mac", "apple", "ios", "macos", "darwin", "pods":
-		return nameLower == "cocoapods" || cleaner.Category() == CategoryApple
+	case "mac", "apple", "ios", "macos", "darwin":
+		return cleaner.Category() == CategoryApple
 	case "c", "cpp", "c++":
 		return cleaner.Category() == CategoryCpp
-	case "flutter", "pub":
+	case "flutter":
 		return cleaner.Category() == CategoryFlutter
-	case "php", "composer", "laravel":
+	case "php":
 		return cleaner.Category() == CategoryPHP
 	case "editor", "editors", "ides", "codeeditor", "texteditor", "text", "environment", "env", "dev":
 		return cleaner.Category() == CategoryIDE
 	case "system", "devops", "ops":
 		return cleaner.Category() == CategorySystem
 
+	case "pods":
+		return nameLower == "cocoapods"
+	case "pub":
+		return nameLower == "dart"
+	case "composer", "laravel":
+		return nameLower == "composer"
 	case "brew":
 		return nameLower == "homebrew"
 	case "pip3":

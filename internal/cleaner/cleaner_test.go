@@ -42,7 +42,7 @@ func TestMatchesArg(t *testing.T) {
 		{"golang -> go category", &mockCleaner{"Go", CategoryGo}, "golang", true},
 
 		{"ios -> apple category", &mockCleaner{"Xcode", CategoryApple}, "ios", true},
-		{"mac -> cocoapods", &mockCleaner{"CocoaPods", CategorySystem}, "mac", true},
+		{"mac -> cocoapods", &mockCleaner{"CocoaPods", CategoryApple}, "mac", true},
 
 		{"wrong name", &mockCleaner{"Pip", CategoryPython}, "npm", false},
 		{"wrong category", &mockCleaner{"Pip", CategoryPython}, "rust", false},

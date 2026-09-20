@@ -57,8 +57,22 @@ var cleanCmd = &cobra.Command{
 				}
 				continue
 			}
+			if r.Reclaimed > 0 {
+				sessionTotal += r.Reclaimed
+				if !dryRun && r.Err != nil {
+					successfulRuns = append(successfulRuns, runStat{name: r.CleanerName, reclaimed: r.Reclaimed})
+				}
+			}
+
 			if r.Err != nil {
 				fmt.Printf("❌ %s failed: %v\n", r.CleanerName, r.Err)
+				if r.Reclaimed > 0 {
+					if dryRun {
+						fmt.Printf("   (Partially would reclaim %s)\n", ui.FormatBytes(r.Reclaimed))
+					} else {
+						fmt.Printf("   (Partially reclaimed %s)\n", ui.FormatBytes(r.Reclaimed))
+					}
+				}
 				hasError = true
 				continue
 			}
@@ -69,7 +83,6 @@ var cleanCmd = &cobra.Command{
 				fmt.Printf("✅ %s reclaimed %s\n", r.CleanerName, ui.FormatBytes(r.Reclaimed))
 				successfulRuns = append(successfulRuns, runStat{name: r.CleanerName, reclaimed: r.Reclaimed})
 			}
-			sessionTotal += r.Reclaimed
 		}
 
 		if dryRun {
