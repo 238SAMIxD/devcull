@@ -34,7 +34,8 @@ func (p *SubprocessCleaner) IsInstalled(ctx context.Context) bool {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	cmdArgs := append(p.manifest.Entrypoint[1:], "installed")
+	cmdArgs := append([]string{}, p.manifest.Entrypoint[1:]...)
+	cmdArgs = append(cmdArgs, "installed")
 	cmd := exec.CommandContext(ctx, p.manifest.Entrypoint[0], cmdArgs...)
 	cmd.Dir = p.manifest.WorkingDir
 
@@ -56,7 +57,8 @@ func (p *SubprocessCleaner) EstimateReclaimable(ctx context.Context) (int64, err
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	cmdArgs := append(p.manifest.Entrypoint[1:], "estimate")
+	cmdArgs := append([]string{}, p.manifest.Entrypoint[1:]...)
+	cmdArgs = append(cmdArgs, "estimate")
 	cmd := exec.CommandContext(ctx, p.manifest.Entrypoint[0], cmdArgs...)
 	cmd.Dir = p.manifest.WorkingDir
 
@@ -80,7 +82,8 @@ func (p *SubprocessCleaner) EstimateReclaimable(ctx context.Context) (int64, err
 }
 
 func (p *SubprocessCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
-	args := append(p.manifest.Entrypoint[1:], "clean")
+	args := append([]string{}, p.manifest.Entrypoint[1:]...)
+	args = append(args, "clean")
 	if dryRun {
 		args = append(args, "--dry-run")
 	}

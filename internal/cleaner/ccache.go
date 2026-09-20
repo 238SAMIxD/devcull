@@ -18,11 +18,12 @@ func (c *CcacheCleaner) getCachePaths() []string {
 		return nil
 	}
 
-	paths := []string{
-		filepath.Join(home, ".ccache"),
-		filepath.Join(home, ".cache", "ccache"),
+	var paths []string
+	for _, char := range "0123456789abcdef" {
+		paths = append(paths, filepath.Join(home, ".ccache", string(char)))
 	}
-
+	paths = append(paths, filepath.Join(home, ".ccache", "tmp"))
+	paths = append(paths, filepath.Join(home, ".cache", "ccache"))
 	paths = append(paths, filepath.Join(home, "Library", "Caches", "ccache"))
 
 	return paths

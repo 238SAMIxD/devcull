@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"time"
+	"sync"
 
 	"os/exec"
 	"strings"
@@ -11,6 +12,7 @@ import (
 
 type PipCleaner struct {
 	cmdName string
+	once    sync.Once
 }
 
 func (p *PipCleaner) Name() string {
@@ -22,18 +24,14 @@ func (p *PipCleaner) Category() Category {
 }
 
 func (p *PipCleaner) getCmd() string {
-	if p.cmdName != "" {
-		return p.cmdName
-	}
-	if _, err := exec.LookPath("pip"); err == nil {
-		p.cmdName = "pip"
-		return p.cmdName
-	}
-	if _, err := exec.LookPath("pip3"); err == nil {
-		p.cmdName = "pip3"
-		return p.cmdName
-	}
-	return ""
+	p.once.Do(func() {
+		if _, err := exec.LookPath("pip"); err == nil {
+			p.cmdName = "pip"
+		} else if _, err := exec.LookPath("pip3"); err == nil {
+			p.cmdName = "pip3"
+		}
+	})
+	return p.cmdName
 }
 
 func (p *PipCleaner) IsInstalled(ctx context.Context) bool {

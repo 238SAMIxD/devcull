@@ -21,12 +21,21 @@ func (p *DartCleaner) getCachePaths() []string {
 
 	if runtime.GOOS == "windows" {
 		if localAppData := os.Getenv("LOCALAPPDATA"); localAppData != "" {
-			return []string{filepath.Join(localAppData, "Pub", "Cache")}
+			return []string{
+				filepath.Join(localAppData, "Pub", "Cache", "hosted"),
+				filepath.Join(localAppData, "Pub", "Cache", "git"),
+			}
 		}
-		return []string{filepath.Join(home, "AppData", "Local", "Pub", "Cache")}
+		return []string{
+			filepath.Join(home, "AppData", "Local", "Pub", "Cache", "hosted"),
+			filepath.Join(home, "AppData", "Local", "Pub", "Cache", "git"),
+		}
 	}
 
-	return []string{filepath.Join(home, ".pub-cache")}
+	return []string{
+		filepath.Join(home, ".pub-cache", "hosted"),
+		filepath.Join(home, ".pub-cache", "git"),
+	}
 }
 
 func (p *DartCleaner) IsInstalled(ctx context.Context) bool {

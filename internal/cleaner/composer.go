@@ -23,7 +23,8 @@ func (c *ComposerCleaner) getCachePaths() []string {
 
 	if runtime.GOOS == "windows" {
 		if localAppData := os.Getenv("LOCALAPPDATA"); localAppData != "" {
-			paths = append(paths, filepath.Join(localAppData, "Composer"))
+			paths = append(paths, filepath.Join(localAppData, "Composer", "files"))
+			paths = append(paths, filepath.Join(localAppData, "Composer", "cache"))
 		}
 		if appData := os.Getenv("APPDATA"); appData != "" {
 			paths = append(paths, filepath.Join(appData, "Composer", "cache"))

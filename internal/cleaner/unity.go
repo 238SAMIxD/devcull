@@ -25,7 +25,6 @@ func (u *UnityCleaner) getCachePaths() []string {
 	case "darwin":
 		paths = []string{
 			filepath.Join(home, "Library", "Unity", "cache", "packages"),
-			filepath.Join(home, "Library", "Unity", "Asset Store-5.x"),
 			filepath.Join(home, "Library", "Caches", "Unity", "gi_cache"),
 			filepath.Join(home, "Library", "Application Support", "UnityHub", "Downloads"), // Hub Installers
 		}
@@ -60,7 +59,6 @@ func (u *UnityCleaner) getCachePaths() []string {
 		}
 		if appData != "" {
 			paths = append(paths,
-				filepath.Join(appData, "Unity", "Asset Store-5.x"),
 				filepath.Join(appData, "UnityHub", "Downloads"),
 			)
 		}
@@ -71,7 +69,6 @@ func (u *UnityCleaner) getCachePaths() []string {
 		}
 		paths = []string{
 			filepath.Join(configDir, "unity3d", "cache", "packages"),
-			filepath.Join(home, ".local", "share", "unity3d", "Asset Store-5.x"),
 			filepath.Join(configDir, "unity3d", "cache", "gi_cache"),
 			filepath.Join(configDir, "UnityHub", "Downloads"),
 		}
