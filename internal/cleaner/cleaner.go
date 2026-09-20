@@ -296,6 +296,7 @@ func cleanDirs(ctx context.Context, paths []string, dryRun bool) (int64, error) 
 		default:
 		}
 		if !isSafeToDelete(p) {
+			fmt.Fprintf(os.Stderr, "WARN: Path rejected by safety guards: %s\n", p)
 			continue
 		}
 		abs, err := filepath.Abs(p)

@@ -148,9 +148,7 @@ func (s *State) Save() error {
 		return err
 	}
 
-	if s.lock != nil {
-		defer s.Unlock()
-	} else {
+	if s.lock == nil {
 		lock := flock.New(path + ".lock")
 		if err := lock.Lock(); err != nil {
 			return err
