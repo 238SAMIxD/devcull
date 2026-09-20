@@ -1,6 +1,9 @@
 package cleaner
 
 import (
+	"context"
+	"time"
+
 	"os/exec"
 	"strings"
 )
@@ -19,14 +22,18 @@ func (d *DotnetCleaner) IsInstalled() bool {
 	if _, err := exec.LookPath("dotnet"); err != nil {
 		return false
 	}
-	if err := exec.Command("dotnet", "--version").Run(); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	if err := exec.CommandContext(ctx, "dotnet", "--version").Run(); err != nil {
 		return false
 	}
 	return true
 }
 
 func (d *DotnetCleaner) getCachePaths() []string {
-	out, err := exec.Command("dotnet", "nuget", "locals", "all", "--list").Output()
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, "dotnet", "nuget", "locals", "all", "--list").Output()
 	if err != nil {
 		return nil
 	}
@@ -64,7 +71,9 @@ func (d *DotnetCleaner) Clean(dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	if err := exec.Command("dotnet", "nuget", "locals", "all", "--clear").Run(); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	if err := exec.CommandContext(ctx, "dotnet", "nuget", "locals", "all", "--clear").Run(); err != nil {
 		return 0, err
 	}
 

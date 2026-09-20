@@ -1,6 +1,9 @@
 package cleaner
 
 import (
+	"context"
+	"time"
+
 	"os/exec"
 	"strings"
 )
@@ -19,14 +22,18 @@ func (y *YarnCleaner) IsInstalled() bool {
 	if _, err := exec.LookPath("yarn"); err != nil {
 		return false
 	}
-	if err := exec.Command("yarn", "--version").Run(); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	if err := exec.CommandContext(ctx, "yarn", "--version").Run(); err != nil {
 		return false
 	}
 	return true
 }
 
 func (y *YarnCleaner) getCachePath() string {
-	out, err := exec.Command("yarn", "cache", "dir").Output()
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, "yarn", "cache", "dir").Output()
 	if err != nil {
 		return ""
 	}
@@ -51,7 +58,9 @@ func (y *YarnCleaner) Clean(dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	if err := exec.Command("yarn", "cache", "clean").Run(); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	if err := exec.CommandContext(ctx, "yarn", "cache", "clean").Run(); err != nil {
 		return 0, err
 	}
 

@@ -1,6 +1,9 @@
 package cleaner
 
 import (
+	"context"
+	"time"
+
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -20,7 +23,9 @@ func (d *DenoCleaner) IsInstalled() bool {
 	if _, err := exec.LookPath("deno"); err != nil {
 		return false
 	}
-	if err := exec.Command("deno", "--version").Run(); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	if err := exec.CommandContext(ctx, "deno", "--version").Run(); err != nil {
 		return false
 	}
 	return true
@@ -51,7 +56,7 @@ func (d *DenoCleaner) getCachePaths() []string {
 	if base == "" {
 		return nil
 	}
-	
+
 	base = filepath.Clean(base)
 	if base == "/" || base == "." || base == "\\" {
 		return nil

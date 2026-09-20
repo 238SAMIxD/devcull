@@ -1,6 +1,9 @@
 package cleaner
 
 import (
+	"context"
+	"time"
+
 	"os/exec"
 	"strings"
 )
@@ -19,7 +22,9 @@ func (g *GoCleaner) IsInstalled() bool {
 	if _, err := exec.LookPath("go"); err != nil {
 		return false
 	}
-	if err := exec.Command("go", "version").Run(); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	if err := exec.CommandContext(ctx, "go", "version").Run(); err != nil {
 		return false
 	}
 	return true
@@ -27,12 +32,16 @@ func (g *GoCleaner) IsInstalled() bool {
 
 func (g *GoCleaner) getCachePaths() []string {
 	var paths []string
-	if out, err := exec.Command("go", "env", "GOCACHE").Output(); err == nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	if out, err := exec.CommandContext(ctx, "go", "env", "GOCACHE").Output(); err == nil {
 		if p := strings.TrimSpace(string(out)); p != "" {
 			paths = append(paths, p)
 		}
 	}
-	if out, err := exec.Command("go", "env", "GOMODCACHE").Output(); err == nil {
+	ctx2, cancel2 := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel2()
+	if out, err := exec.CommandContext(ctx2, "go", "env", "GOMODCACHE").Output(); err == nil {
 		if p := strings.TrimSpace(string(out)); p != "" {
 			paths = append(paths, p)
 		}
@@ -54,7 +63,9 @@ func (g *GoCleaner) Clean(dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	if err := exec.Command("go", "clean", "-cache", "-modcache").Run(); err != nil {
+	ctx2, cancel2 := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel2()
+	if err := exec.CommandContext(ctx2, "go", "clean", "-cache", "-modcache").Run(); err != nil {
 		return 0, err
 	}
 

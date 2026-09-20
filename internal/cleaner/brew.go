@@ -1,6 +1,9 @@
 package cleaner
 
 import (
+	"context"
+	"time"
+
 	"os/exec"
 	"strings"
 )
@@ -19,14 +22,18 @@ func (b *BrewCleaner) IsInstalled() bool {
 	if _, err := exec.LookPath("brew"); err != nil {
 		return false
 	}
-	if err := exec.Command("brew", "--version").Run(); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	if err := exec.CommandContext(ctx, "brew", "--version").Run(); err != nil {
 		return false
 	}
 	return true
 }
 
 func (b *BrewCleaner) getCachePath() string {
-	out, err := exec.Command("brew", "--cache").Output()
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, "brew", "--cache").Output()
 	if err != nil {
 		return ""
 	}
@@ -51,7 +58,9 @@ func (b *BrewCleaner) Clean(dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	if err := exec.Command("brew", "cleanup").Run(); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	if err := exec.CommandContext(ctx, "brew", "cleanup").Run(); err != nil {
 		return 0, err
 	}
 

@@ -1,6 +1,9 @@
 package cleaner
 
 import (
+	"context"
+	"time"
+
 	"os/exec"
 	"strings"
 
@@ -21,14 +24,18 @@ func (d *DockerCleaner) IsInstalled() bool {
 	if _, err := exec.LookPath("docker"); err != nil {
 		return false
 	}
-	if err := exec.Command("docker", "info").Run(); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	if err := exec.CommandContext(ctx, "docker", "info").Run(); err != nil {
 		return false
 	}
 	return true
 }
 
 func (d *DockerCleaner) EstimateReclaimable() (int64, error) {
-	out, err := exec.Command("docker", "system", "df", "--format", "{{.Type}}|{{.Reclaimable}}").Output()
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, "docker", "system", "df", "--format", "{{.Type}}|{{.Reclaimable}}").Output()
 	if err != nil {
 		return 0, err
 	}
@@ -58,7 +65,9 @@ func (d *DockerCleaner) Clean(dryRun bool) (int64, error) {
 		return reclaimable, nil
 	}
 
-	out, err := exec.Command("docker", "builder", "prune", "-a", "-f").Output()
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, "docker", "builder", "prune", "-a", "-f").Output()
 	if err != nil {
 		return 0, err
 	}

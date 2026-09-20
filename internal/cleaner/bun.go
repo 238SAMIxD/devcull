@@ -1,6 +1,9 @@
 package cleaner
 
 import (
+	"context"
+	"time"
+
 	"os"
 	"os/exec"
 	"strings"
@@ -20,14 +23,18 @@ func (b *BunCleaner) IsInstalled() bool {
 	if _, err := exec.LookPath("bun"); err != nil {
 		return false
 	}
-	if err := exec.Command("bun", "--version").Run(); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	if err := exec.CommandContext(ctx, "bun", "--version").Run(); err != nil {
 		return false
 	}
 	return true
 }
 
 func (b *BunCleaner) getCachePath() string {
-	out, err := exec.Command("bun", "pm", "cache").Output()
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, "bun", "pm", "cache").Output()
 	if err != nil {
 		return ""
 	}

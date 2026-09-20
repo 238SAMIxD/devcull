@@ -1,6 +1,9 @@
 package cleaner
 
 import (
+	"context"
+	"time"
+
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -20,7 +23,9 @@ func (c *CargoCleaner) IsInstalled() bool {
 	if _, err := exec.LookPath("cargo"); err != nil {
 		return false
 	}
-	if err := exec.Command("cargo", "--version").Run(); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	if err := exec.CommandContext(ctx, "cargo", "--version").Run(); err != nil {
 		return false
 	}
 	return true
@@ -35,7 +40,7 @@ func (c *CargoCleaner) getCachePaths() []string {
 			cargoHome = abs
 		}
 	}
-	
+
 	if cargoHome == "" {
 		if userHome, err := os.UserHomeDir(); err == nil {
 			cargoHome = filepath.Join(userHome, ".cargo")

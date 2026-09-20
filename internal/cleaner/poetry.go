@@ -1,6 +1,9 @@
 package cleaner
 
 import (
+	"context"
+	"time"
+
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -20,14 +23,18 @@ func (p *PoetryCleaner) IsInstalled() bool {
 	if _, err := exec.LookPath("poetry"); err != nil {
 		return false
 	}
-	if err := exec.Command("poetry", "--version").Run(); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	if err := exec.CommandContext(ctx, "poetry", "--version").Run(); err != nil {
 		return false
 	}
 	return true
 }
 
 func (p *PoetryCleaner) getCachePaths() []string {
-	out, err := exec.Command("poetry", "config", "cache-dir").Output()
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, "poetry", "config", "cache-dir").Output()
 	if err != nil {
 		return nil
 	}
