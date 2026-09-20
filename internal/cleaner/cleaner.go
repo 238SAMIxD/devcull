@@ -1,6 +1,7 @@
 package cleaner
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -113,6 +114,9 @@ func Native() []Cleaner {
 }
 
 func dirSize(path string) (int64, error) {
+	if path == "" {
+		return 0, fmt.Errorf("empty path provided to dirSize")
+	}
 	var size int64
 	err := filepath.WalkDir(path, func(_ string, d os.DirEntry, err error) error {
 		if err != nil {

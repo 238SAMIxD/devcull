@@ -2,6 +2,7 @@ package cleaner
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"os/exec"
@@ -30,20 +31,24 @@ func (y *YarnCleaner) IsInstalled() bool {
 	return true
 }
 
-func (y *YarnCleaner) getCachePath() string {
+func (y *YarnCleaner) getCachePath() (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "yarn", "cache", "dir").Output()
 	if err != nil {
-		return ""
+		return "", err
 	}
-	return strings.TrimSpace(string(out))
+	p := strings.TrimSpace(string(out))
+	if p == "" {
+		return "", fmt.Errorf("empty cache path returned")
+	}
+	return p, nil
 }
 
 func (y *YarnCleaner) EstimateReclaimable() (int64, error) {
-	cachePath := y.getCachePath()
-	if cachePath == "" {
-		return 0, nil
+	cachePath, err := y.getCachePath()
+	if err != nil {
+		return 0, err
 	}
 	return dirSize(cachePath)
 }
@@ -64,7 +69,11 @@ func (y *YarnCleaner) Clean(dryRun bool) (int64, error) {
 		return 0, err
 	}
 
-	after, err := dirSize(y.getCachePath())
+	cachePath, err := y.getCachePath()
+	if err != nil {
+		return 0, err
+	}
+	after, err := dirSize(cachePath)
 	if err != nil && after == 0 {
 		after = before
 	}

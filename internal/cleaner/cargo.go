@@ -2,6 +2,7 @@ package cleaner
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"os"
@@ -31,7 +32,7 @@ func (c *CargoCleaner) IsInstalled() bool {
 	return true
 }
 
-func (c *CargoCleaner) getCachePaths() []string {
+func (c *CargoCleaner) getCachePaths() ([]string, error) {
 	var cargoHome string
 	if home := os.Getenv("CARGO_HOME"); home != "" {
 		if filepath.IsAbs(home) {
@@ -48,20 +49,28 @@ func (c *CargoCleaner) getCachePaths() []string {
 	}
 
 	if cargoHome == "" {
-		return nil
+		return nil, fmt.Errorf("cargo home is not found")
 	}
 
 	return []string{
 		filepath.Join(cargoHome, "registry", "cache"),
 		filepath.Join(cargoHome, "registry", "src"),
 		filepath.Join(cargoHome, "git"),
-	}
+	}, nil
 }
 
 func (c *CargoCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(c.getCachePaths())
+	paths, err := c.getCachePaths()
+	if err != nil {
+		return 0, err
+	}
+	return dirsSize(paths)
 }
 
 func (c *CargoCleaner) Clean(dryRun bool) (int64, error) {
-	return cleanDirs(c.getCachePaths(), dryRun)
+	paths, err := c.getCachePaths()
+	if err != nil {
+		return 0, err
+	}
+	return cleanDirs(paths, dryRun)
 }

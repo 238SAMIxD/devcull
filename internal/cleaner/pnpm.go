@@ -2,6 +2,7 @@ package cleaner
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"os/exec"
@@ -30,20 +31,24 @@ func (p *PnpmCleaner) IsInstalled() bool {
 	return true
 }
 
-func (p *PnpmCleaner) getCachePath() string {
+func (p *PnpmCleaner) getCachePath() (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "pnpm", "store", "path").Output()
 	if err != nil {
-		return ""
+		return "", err
 	}
-	return strings.TrimSpace(string(out))
+	pathStr := strings.TrimSpace(string(out))
+	if pathStr == "" {
+		return "", fmt.Errorf("empty cache path returned")
+	}
+	return pathStr, nil
 }
 
 func (p *PnpmCleaner) EstimateReclaimable() (int64, error) {
-	cachePath := p.getCachePath()
-	if cachePath == "" {
-		return 0, nil
+	cachePath, err := p.getCachePath()
+	if err != nil {
+		return 0, err
 	}
 	return dirSize(cachePath)
 }
@@ -64,7 +69,11 @@ func (p *PnpmCleaner) Clean(dryRun bool) (int64, error) {
 		return 0, err
 	}
 
-	after, err := dirSize(p.getCachePath())
+	cachePath, err := p.getCachePath()
+	if err != nil {
+		return 0, err
+	}
+	after, err := dirSize(cachePath)
 	if err != nil && after == 0 {
 		after = before
 	}

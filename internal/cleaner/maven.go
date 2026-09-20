@@ -10,23 +10,35 @@ type MavenCleaner struct{}
 func (m *MavenCleaner) Name() string       { return "Maven" }
 func (m *MavenCleaner) Category() Category { return CategoryJava }
 
-func (m *MavenCleaner) getCachePath() string {
+func (m *MavenCleaner) getCachePath() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return ""
+		return "", err
 	}
-	return filepath.Join(home, ".m2", "repository")
+	return filepath.Join(home, ".m2", "repository"), nil
 }
 
 func (m *MavenCleaner) IsInstalled() bool {
-	info, err := os.Stat(m.getCachePath())
+	p, err := m.getCachePath()
+	if err != nil {
+		return false
+	}
+	info, err := os.Stat(p)
 	return err == nil && info.IsDir()
 }
 
 func (m *MavenCleaner) EstimateReclaimable() (int64, error) {
-	return dirSize(m.getCachePath())
+	p, err := m.getCachePath()
+	if err != nil {
+		return 0, err
+	}
+	return dirSize(p)
 }
 
 func (m *MavenCleaner) Clean(dryRun bool) (int64, error) {
-	return cleanDirs([]string{m.getCachePath()}, dryRun)
+	p, err := m.getCachePath()
+	if err != nil {
+		return 0, err
+	}
+	return cleanDirs([]string{p}, dryRun)
 }

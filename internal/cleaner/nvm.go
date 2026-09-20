@@ -26,18 +26,18 @@ func (n *NvmCleaner) IsInstalled() bool {
 	return err == nil && info.IsDir()
 }
 
-func (n *NvmCleaner) getCachePath() string {
+func (n *NvmCleaner) getCachePath() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return ""
+		return "", err
 	}
-	return filepath.Join(home, ".nvm", ".cache")
+	return filepath.Join(home, ".nvm", ".cache"), nil
 }
 
 func (n *NvmCleaner) EstimateReclaimable() (int64, error) {
-	cachePath := n.getCachePath()
-	if cachePath == "" {
-		return 0, nil
+	cachePath, err := n.getCachePath()
+	if err != nil {
+		return 0, err
 	}
 
 	if _, err := os.Stat(cachePath); os.IsNotExist(err) {
@@ -57,7 +57,10 @@ func (n *NvmCleaner) Clean(dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	cachePath := n.getCachePath()
+	cachePath, err := n.getCachePath()
+	if err != nil {
+		return 0, err
+	}
 	if cachePath != "" {
 		if err := os.RemoveAll(cachePath); err != nil && !os.IsNotExist(err) {
 			return 0, err

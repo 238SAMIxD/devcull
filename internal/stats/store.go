@@ -41,10 +41,17 @@ func Load() (*State, error) {
 	}
 
 	b, err := os.ReadFile(path)
-	if os.IsNotExist(err) {
-		return &State{Tools: make(map[string]*ToolStats)}, nil
-	} else if err != nil {
-		return nil, err
+	if err != nil {
+		if os.IsNotExist(err) {
+			bBak, errBak := os.ReadFile(path + ".bak")
+			if errBak == nil {
+				b = bBak
+			} else {
+				return &State{Tools: make(map[string]*ToolStats)}, nil
+			}
+		} else {
+			return nil, err
+		}
 	}
 
 	var s State
@@ -71,11 +78,18 @@ func LoadAndLock() (*State, error) {
 	}
 
 	b, err := os.ReadFile(path)
-	if os.IsNotExist(err) {
-		return &State{Tools: make(map[string]*ToolStats), lock: lock}, nil
-	} else if err != nil {
-		lock.Unlock()
-		return nil, err
+	if err != nil {
+		if os.IsNotExist(err) {
+			bBak, errBak := os.ReadFile(path + ".bak")
+			if errBak == nil {
+				b = bBak
+			} else {
+				return &State{Tools: make(map[string]*ToolStats), lock: lock}, nil
+			}
+		} else {
+			lock.Unlock()
+			return nil, err
+		}
 	}
 
 	var s State
@@ -145,9 +159,18 @@ func (s *State) Save() error {
 	b = append(b, '\n')
 
 	tmp := path + ".tmp"
+	bak := path + ".bak"
 	if err := os.WriteFile(tmp, b, 0644); err != nil {
 		return err
 	}
-	os.Remove(path)
-	return os.Rename(tmp, path)
+	if _, err := os.Stat(path); err == nil {
+		if err := os.Rename(path, bak); err != nil {
+			return err
+		}
+	}
+	if err := os.Rename(tmp, path); err != nil {
+		return err
+	}
+	os.Remove(bak)
+	return nil
 }

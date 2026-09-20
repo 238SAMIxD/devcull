@@ -11,7 +11,6 @@ import (
 func LoadPlugins() []cleaner.Cleaner {
 	var plugins []cleaner.Cleaner
 
-
 	if configDir, err := os.UserConfigDir(); err == nil {
 		plugins = append(plugins, loadFromDir(filepath.Join(configDir, "devcull", "plugins"))...)
 	}

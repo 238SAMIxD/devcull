@@ -2,6 +2,7 @@ package cleaner
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"os"
@@ -31,20 +32,24 @@ func (b *BunCleaner) IsInstalled() bool {
 	return true
 }
 
-func (b *BunCleaner) getCachePath() string {
+func (b *BunCleaner) getCachePath() (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "bun", "pm", "cache").Output()
 	if err != nil {
-		return ""
+		return "", err
 	}
-	return strings.TrimSpace(string(out))
+	p := strings.TrimSpace(string(out))
+	if p == "" {
+		return "", fmt.Errorf("empty cache path returned")
+	}
+	return p, nil
 }
 
 func (b *BunCleaner) EstimateReclaimable() (int64, error) {
-	cachePath := b.getCachePath()
-	if cachePath == "" {
-		return 0, nil
+	cachePath, err := b.getCachePath()
+	if err != nil {
+		return 0, err
 	}
 
 	if _, err := os.Stat(cachePath); os.IsNotExist(err) {
@@ -64,7 +69,10 @@ func (b *BunCleaner) Clean(dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	cachePath := b.getCachePath()
+	cachePath, err := b.getCachePath()
+	if err != nil {
+		return 0, err
+	}
 	if cachePath != "" {
 		if err := os.RemoveAll(cachePath); err != nil && !os.IsNotExist(err) {
 			return 0, err

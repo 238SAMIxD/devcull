@@ -2,6 +2,7 @@ package cleaner
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"os/exec"
@@ -30,7 +31,7 @@ func (g *GoCleaner) IsInstalled() bool {
 	return true
 }
 
-func (g *GoCleaner) getCachePaths() []string {
+func (g *GoCleaner) getCachePaths() ([]string, error) {
 	var paths []string
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -46,11 +47,18 @@ func (g *GoCleaner) getCachePaths() []string {
 			paths = append(paths, p)
 		}
 	}
-	return paths
+	if len(paths) == 0 {
+		return nil, fmt.Errorf("no go cache paths found")
+	}
+	return paths, nil
 }
 
 func (g *GoCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(g.getCachePaths())
+	paths, err := g.getCachePaths()
+	if err != nil {
+		return 0, err
+	}
+	return dirsSize(paths)
 }
 
 func (g *GoCleaner) Clean(dryRun bool) (int64, error) {
@@ -69,7 +77,11 @@ func (g *GoCleaner) Clean(dryRun bool) (int64, error) {
 		return 0, err
 	}
 
-	after, err := dirsSize(g.getCachePaths())
+	paths, err := g.getCachePaths()
+	if err != nil {
+		return 0, err
+	}
+	after, err := dirsSize(paths)
 	if err != nil {
 		return 0, err
 	}
