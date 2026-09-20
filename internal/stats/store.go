@@ -16,6 +16,8 @@ type ToolStats struct {
 type State struct {
 	AllTimeTotal int64                 `json:"all_time_total"`
 	Tools        map[string]*ToolStats `json:"tools"`
+
+	lock *flock.Flock
 }
 
 func getStateFilePath() (string, error) {
@@ -57,6 +59,48 @@ func Load() (*State, error) {
 	return &s, nil
 }
 
+func LoadAndLock() (*State, error) {
+	path, err := getStateFilePath()
+	if err != nil {
+		return nil, err
+	}
+
+	lock := flock.New(path + ".lock")
+	if err := lock.Lock(); err != nil {
+		return nil, err
+	}
+
+	b, err := os.ReadFile(path)
+	if os.IsNotExist(err) {
+		return &State{Tools: make(map[string]*ToolStats), lock: lock}, nil
+	} else if err != nil {
+		lock.Unlock()
+		return nil, err
+	}
+
+	var s State
+	if err := json.Unmarshal(b, &s); err != nil {
+		lock.Unlock()
+		return nil, err
+	}
+
+	if s.Tools == nil {
+		s.Tools = make(map[string]*ToolStats)
+	}
+	s.lock = lock
+
+	return &s, nil
+}
+
+func (s *State) Unlock() error {
+	if s.lock != nil {
+		err := s.lock.Unlock()
+		s.lock = nil
+		return err
+	}
+	return nil
+}
+
 func (s *State) AddRun(tool string, reclaimed int64) {
 	if reclaimed <= 0 {
 		return
@@ -84,11 +128,15 @@ func (s *State) Save() error {
 		return err
 	}
 
-	lock := flock.New(path + ".lock")
-	if err := lock.Lock(); err != nil {
-		return err
+	if s.lock != nil {
+		defer s.Unlock()
+	} else {
+		lock := flock.New(path + ".lock")
+		if err := lock.Lock(); err != nil {
+			return err
+		}
+		defer lock.Unlock()
 	}
-	defer lock.Unlock()
 
 	b, err := json.MarshalIndent(s, "", "  ")
 	if err != nil {

@@ -38,16 +38,18 @@ var cleanCmd = &cobra.Command{
 			activeCleaners = allCleaners
 		}
 
-		state, err := stats.Load()
-		if err != nil {
-			return fmt.Errorf("failed to load stats: %w", err)
-		}
-
 		results := engine.Run(activeCleaners, dryRun)
 
 		var sessionTotal int64
 		hasArgs := len(args) > 0
 		var hasError bool
+
+		type runStat struct {
+			name      string
+			reclaimed int64
+		}
+		var successfulRuns []runStat
+
 		for _, r := range results {
 			if r.Skipped {
 				if hasArgs {
@@ -65,7 +67,7 @@ var cleanCmd = &cobra.Command{
 				fmt.Printf("[DRY RUN] %s would reclaim %s\n", r.CleanerName, ui.FormatBytes(r.Reclaimed))
 			} else {
 				fmt.Printf("✅ %s reclaimed %s\n", r.CleanerName, ui.FormatBytes(r.Reclaimed))
-				state.AddRun(r.CleanerName, r.Reclaimed)
+				successfulRuns = append(successfulRuns, runStat{name: r.CleanerName, reclaimed: r.Reclaimed})
 			}
 			sessionTotal += r.Reclaimed
 		}
@@ -75,9 +77,18 @@ var cleanCmd = &cobra.Command{
 		} else {
 			fmt.Printf("\n🎉 Total space reclaimed this session: %s\n", ui.FormatBytes(sessionTotal))
 			if sessionTotal > 0 {
-				if err := state.Save(); err != nil {
-					fmt.Printf("⚠️ Failed to save stats: %v\n", err)
+				state, err := stats.LoadAndLock()
+				if err != nil {
+					fmt.Printf("⚠️ Failed to load stats for saving: %v\n", err)
 					hasError = true
+				} else {
+					for _, run := range successfulRuns {
+						state.AddRun(run.name, run.reclaimed)
+					}
+					if err := state.Save(); err != nil {
+						fmt.Printf("⚠️ Failed to save stats: %v\n", err)
+						hasError = true
+					}
 				}
 			}
 		}

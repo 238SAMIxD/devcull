@@ -62,7 +62,35 @@ var statsCmd = &cobra.Command{
 			reclaimed int64
 		}
 
+		var activeCategories []cleaner.Category
+
 		for _, cat := range cleaner.AllCategories() {
+			if _, exists := groupedStats[cat]; exists {
+				activeCategories = append(activeCategories, cat)
+			}
+		}
+
+		var extraCategories []cleaner.Category
+		for cat := range groupedStats {
+			isBuiltIn := false
+			for _, builtIn := range cleaner.AllCategories() {
+				if cat == builtIn {
+					isBuiltIn = true
+					break
+				}
+			}
+			if !isBuiltIn {
+				extraCategories = append(extraCategories, cat)
+			}
+		}
+
+		sort.Slice(extraCategories, func(i, j int) bool {
+			return extraCategories[i] < extraCategories[j]
+		})
+
+		activeCategories = append(activeCategories, extraCategories...)
+
+		for _, cat := range activeCategories {
 			toolsInCat, exists := groupedStats[cat]
 			if !exists || len(toolsInCat) == 0 {
 				continue
