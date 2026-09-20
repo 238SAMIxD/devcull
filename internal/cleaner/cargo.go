@@ -29,9 +29,17 @@ func (c *CargoCleaner) IsInstalled() bool {
 func (c *CargoCleaner) getCachePaths() []string {
 	var cargoHome string
 	if home := os.Getenv("CARGO_HOME"); home != "" {
-		cargoHome = home
-	} else if userHome, err := os.UserHomeDir(); err == nil {
-		cargoHome = filepath.Join(userHome, ".cargo")
+		if filepath.IsAbs(home) {
+			cargoHome = home
+		} else if abs, err := filepath.Abs(home); err == nil {
+			cargoHome = abs
+		}
+	}
+	
+	if cargoHome == "" {
+		if userHome, err := os.UserHomeDir(); err == nil {
+			cargoHome = filepath.Join(userHome, ".cargo")
+		}
 	}
 
 	if cargoHome == "" {

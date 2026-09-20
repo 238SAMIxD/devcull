@@ -23,9 +23,7 @@ func (x *XcodeCleaner) getCachePaths() []string {
 
 	return []string{
 		filepath.Join(home, "Library", "Developer", "Xcode", "DerivedData"),
-		filepath.Join(home, "Library", "Developer", "Xcode", "iOS DeviceSupport"),
-		filepath.Join(home, "Library", "Developer", "Xcode", "watchOS DeviceSupport"),
-		filepath.Join(home, "Library", "Developer", "Xcode", "tvOS DeviceSupport"),
+		filepath.Join(home, "Library", "Caches", "com.apple.dt.Xcode"),
 	}
 }
 

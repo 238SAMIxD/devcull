@@ -28,7 +28,12 @@ func (d *DenoCleaner) IsInstalled() bool {
 
 func (d *DenoCleaner) getCachePath() string {
 	if custom := os.Getenv("DENO_DIR"); custom != "" {
-		return custom
+		if filepath.IsAbs(custom) {
+			return custom
+		}
+		if abs, err := filepath.Abs(custom); err == nil {
+			return abs
+		}
 	}
 
 	home, err := os.UserHomeDir()

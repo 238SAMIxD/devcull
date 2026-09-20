@@ -29,7 +29,26 @@ func (u *UnityCleaner) getCachePaths() []string {
 		}
 	case "windows":
 		localAppData := os.Getenv("LOCALAPPDATA")
+		if localAppData != "" {
+			if !filepath.IsAbs(localAppData) {
+				if abs, err := filepath.Abs(localAppData); err == nil {
+					localAppData = abs
+				} else {
+					localAppData = ""
+				}
+			}
+		}
+
 		appData := os.Getenv("APPDATA")
+		if appData != "" {
+			if !filepath.IsAbs(appData) {
+				if abs, err := filepath.Abs(appData); err == nil {
+					appData = abs
+				} else {
+					appData = ""
+				}
+			}
+		}
 
 		if localAppData != "" {
 			paths = append(paths,

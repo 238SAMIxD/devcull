@@ -24,7 +24,6 @@ func (s *SwiftPMCleaner) getCachePaths() []string {
 
 	return []string{
 		filepath.Join(home, "Library", "Caches", "org.swift.swiftpm"),
-		filepath.Join(home, "Library", "org.swift.swiftpm"),
 	}
 }
 
