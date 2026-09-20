@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-var byteRe = regexp.MustCompile(`(?i)([\d.]+)\s*(B|KB|MB|GB|TB)`)
+var byteRe = regexp.MustCompile(`(?i)([\d.]+)\s*(B|KB|MB|GB|TB|KIB|MIB|GIB|TIB)`)
 
 func ParseByteString(s string) int64 {
 	matches := byteRe.FindAllStringSubmatch(s, -1)
@@ -23,13 +23,13 @@ func ParseByteString(s string) int64 {
 
 	multiplier := float64(1)
 	switch strings.ToUpper(lastMatch[2]) {
-	case "KB":
+	case "KB", "KIB":
 		multiplier = 1024
-	case "MB":
+	case "MB", "MIB":
 		multiplier = 1024 * 1024
-	case "GB":
+	case "GB", "GIB":
 		multiplier = 1024 * 1024 * 1024
-	case "TB":
+	case "TB", "TIB":
 		multiplier = 1024 * 1024 * 1024 * 1024
 	}
 

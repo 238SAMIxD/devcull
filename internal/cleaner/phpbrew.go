@@ -12,6 +12,8 @@ type PhpbrewCleaner struct{}
 func (p *PhpbrewCleaner) Name() string       { return "phpbrew" }
 func (p *PhpbrewCleaner) Category() Category { return CategoryPHP }
 
+func (p *PhpbrewCleaner) Aliases() []string { return nil }
+
 func (p *PhpbrewCleaner) getCachePaths() []string {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -26,7 +28,7 @@ func (p *PhpbrewCleaner) getCachePaths() []string {
 
 func (p *PhpbrewCleaner) IsInstalled(ctx context.Context) bool {
 	for _, path := range p.getCachePaths() {
-		if info, err := os.Stat(path); err == nil && info.IsDir() {
+		if info, err := os.Stat(filepath.Dir(path)); err == nil && info.IsDir() {
 			return true
 		}
 	}

@@ -19,6 +19,8 @@ func (b *BrewCleaner) Category() Category {
 	return CategorySystem
 }
 
+func (b *BrewCleaner) Aliases() []string { return nil }
+
 func (b *BrewCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("brew"); err != nil {
 		return false

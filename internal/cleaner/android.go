@@ -12,6 +12,8 @@ type AndroidCleaner struct{}
 func (a *AndroidCleaner) Name() string       { return "Android" }
 func (a *AndroidCleaner) Category() Category { return CategoryJava }
 
+func (a *AndroidCleaner) Aliases() []string { return nil }
+
 func (a *AndroidCleaner) getCachePaths() []string {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -25,7 +27,7 @@ func (a *AndroidCleaner) getCachePaths() []string {
 
 func (a *AndroidCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range a.getCachePaths() {
-		if info, err := os.Stat(p); err == nil && info.IsDir() {
+		if info, err := os.Stat(filepath.Dir(p)); err == nil && info.IsDir() {
 			return true
 		}
 	}

@@ -21,6 +21,8 @@ func (b *BunCleaner) Category() Category {
 	return CategoryNode
 }
 
+func (b *BunCleaner) Aliases() []string { return nil }
+
 func (b *BunCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("bun"); err != nil {
 		return false
@@ -104,7 +106,7 @@ func (b *BunCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 		return 0, nil
 	}
 	if cachePath != "" {
-		if err := removeAll(ctx, cachePath); err != nil && !os.IsNotExist(err) {
+		if err := os.RemoveAll(cachePath); err != nil && !os.IsNotExist(err) {
 			return 0, err
 		}
 	}

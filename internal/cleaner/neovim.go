@@ -13,6 +13,8 @@ type NeovimCleaner struct{}
 func (c *NeovimCleaner) Name() string       { return "Neovim" }
 func (c *NeovimCleaner) Category() Category { return CategoryIDE }
 
+func (c *NeovimCleaner) Aliases() []string { return nil }
+
 func (c *NeovimCleaner) getPaths() []string {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -29,7 +31,7 @@ func (c *NeovimCleaner) getPaths() []string {
 
 func (c *NeovimCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range c.getPaths() {
-		if info, err := os.Stat(p); err == nil && info.IsDir() {
+		if info, err := os.Stat(filepath.Dir(p)); err == nil && info.IsDir() {
 			return true
 		}
 	}

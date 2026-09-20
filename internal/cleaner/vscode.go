@@ -13,6 +13,8 @@ type VSCodeCleaner struct{}
 func (c *VSCodeCleaner) Name() string       { return "VS Code" }
 func (c *VSCodeCleaner) Category() Category { return CategoryIDE }
 
+func (c *VSCodeCleaner) Aliases() []string { return []string{"vscode", "code"} }
+
 func (c *VSCodeCleaner) getPaths() []string {
 	home, err := os.UserHomeDir()
 	if err != nil {

@@ -12,6 +12,8 @@ type EclipseCleaner struct{}
 func (c *EclipseCleaner) Name() string       { return "Eclipse" }
 func (c *EclipseCleaner) Category() Category { return CategoryIDE }
 
+func (c *EclipseCleaner) Aliases() []string { return nil }
+
 func (c *EclipseCleaner) getPaths() []string {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -27,7 +29,7 @@ func (c *EclipseCleaner) getPaths() []string {
 
 func (c *EclipseCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range c.getPaths() {
-		if info, err := os.Stat(p); err == nil && info.IsDir() {
+		if info, err := os.Stat(filepath.Dir(p)); err == nil && info.IsDir() {
 			return true
 		}
 	}

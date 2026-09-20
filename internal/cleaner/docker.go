@@ -20,6 +20,8 @@ func (d *DockerCleaner) Category() Category {
 	return CategorySystem
 }
 
+func (d *DockerCleaner) Aliases() []string { return nil }
+
 func (d *DockerCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("docker"); err != nil {
 		return false

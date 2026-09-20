@@ -12,6 +12,8 @@ type KotlinCleaner struct{}
 func (k *KotlinCleaner) Name() string       { return "Kotlin" }
 func (k *KotlinCleaner) Category() Category { return CategoryJava }
 
+func (k *KotlinCleaner) Aliases() []string { return nil }
+
 func (k *KotlinCleaner) getCachePath() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -25,7 +27,7 @@ func (k *KotlinCleaner) IsInstalled(ctx context.Context) bool {
 	if err != nil {
 		return false
 	}
-	info, err := os.Stat(p)
+	info, err := os.Stat(filepath.Dir(p))
 	return err == nil && info.IsDir()
 }
 

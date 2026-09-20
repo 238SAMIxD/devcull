@@ -13,6 +13,8 @@ type ComposerCleaner struct{}
 func (c *ComposerCleaner) Name() string       { return "Composer" }
 func (c *ComposerCleaner) Category() Category { return CategoryPHP }
 
+func (c *ComposerCleaner) Aliases() []string { return nil }
+
 func (c *ComposerCleaner) getCachePaths() []string {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -39,7 +41,7 @@ func (c *ComposerCleaner) getCachePaths() []string {
 
 func (c *ComposerCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range c.getCachePaths() {
-		if info, err := os.Stat(p); err == nil && info.IsDir() {
+		if info, err := os.Stat(filepath.Dir(p)); err == nil && info.IsDir() {
 			return true
 		}
 	}

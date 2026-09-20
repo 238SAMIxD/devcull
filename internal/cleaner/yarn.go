@@ -19,6 +19,8 @@ func (y *YarnCleaner) Category() Category {
 	return CategoryNode
 }
 
+func (y *YarnCleaner) Aliases() []string { return nil }
+
 func (y *YarnCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("yarn"); err != nil {
 		return false

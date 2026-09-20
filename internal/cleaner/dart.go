@@ -13,6 +13,8 @@ type DartCleaner struct{}
 func (p *DartCleaner) Name() string       { return "Dart" }
 func (p *DartCleaner) Category() Category { return CategoryFlutter }
 
+func (p *DartCleaner) Aliases() []string { return nil }
+
 func (p *DartCleaner) getCachePaths() []string {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -40,7 +42,7 @@ func (p *DartCleaner) getCachePaths() []string {
 
 func (p *DartCleaner) IsInstalled(ctx context.Context) bool {
 	for _, path := range p.getCachePaths() {
-		if info, err := os.Stat(path); err == nil && info.IsDir() {
+		if info, err := os.Stat(filepath.Dir(path)); err == nil && info.IsDir() {
 			return true
 		}
 	}

@@ -170,6 +170,8 @@ func (s *State) Save() error {
 		return err
 	}
 	if _, err := os.Stat(path); err == nil {
+		os.Remove(bak)
+
 		if err := os.Rename(path, bak); err != nil {
 			return err
 		}

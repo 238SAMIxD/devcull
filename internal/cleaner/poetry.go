@@ -20,6 +20,8 @@ func (p *PoetryCleaner) Category() Category {
 	return CategoryPython
 }
 
+func (p *PoetryCleaner) Aliases() []string { return nil }
+
 func (p *PoetryCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("poetry"); err != nil {
 		return false

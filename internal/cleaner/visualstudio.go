@@ -13,6 +13,8 @@ type VisualStudioCleaner struct{}
 func (c *VisualStudioCleaner) Name() string       { return "Visual Studio" }
 func (c *VisualStudioCleaner) Category() Category { return CategoryIDE }
 
+func (c *VisualStudioCleaner) Aliases() []string { return nil }
+
 func (c *VisualStudioCleaner) getPaths() []string {
 	if runtime.GOOS != "windows" {
 		return nil
@@ -32,7 +34,7 @@ func (c *VisualStudioCleaner) getPaths() []string {
 
 func (c *VisualStudioCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range c.getPaths() {
-		if info, err := os.Stat(p); err == nil && info.IsDir() {
+		if info, err := os.Stat(filepath.Dir(p)); err == nil && info.IsDir() {
 			return true
 		}
 	}

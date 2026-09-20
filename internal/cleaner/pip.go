@@ -3,8 +3,8 @@ package cleaner
 import (
 	"context"
 	"fmt"
-	"time"
 	"sync"
+	"time"
 
 	"os/exec"
 	"strings"
@@ -22,6 +22,8 @@ func (p *PipCleaner) Name() string {
 func (p *PipCleaner) Category() Category {
 	return CategoryPython
 }
+
+func (p *PipCleaner) Aliases() []string { return nil }
 
 func (p *PipCleaner) getCmd() string {
 	p.once.Do(func() {

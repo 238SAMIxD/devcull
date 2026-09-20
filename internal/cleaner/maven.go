@@ -12,6 +12,8 @@ type MavenCleaner struct{}
 func (m *MavenCleaner) Name() string       { return "Maven" }
 func (m *MavenCleaner) Category() Category { return CategoryJava }
 
+func (m *MavenCleaner) Aliases() []string { return nil }
+
 func (m *MavenCleaner) getCachePath() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -25,7 +27,7 @@ func (m *MavenCleaner) IsInstalled(ctx context.Context) bool {
 	if err != nil {
 		return false
 	}
-	info, err := os.Stat(p)
+	info, err := os.Stat(filepath.Dir(p))
 	return err == nil && info.IsDir()
 }
 

@@ -13,6 +13,8 @@ type UnrealCleaner struct{}
 func (u *UnrealCleaner) Name() string       { return "Unreal Engine" }
 func (u *UnrealCleaner) Category() Category { return CategoryCpp }
 
+func (u *UnrealCleaner) Aliases() []string { return nil }
+
 func (u *UnrealCleaner) getCachePaths() []string {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -36,7 +38,7 @@ func (u *UnrealCleaner) getCachePaths() []string {
 
 func (u *UnrealCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range u.getCachePaths() {
-		if info, err := os.Stat(p); err == nil && info.IsDir() {
+		if info, err := os.Stat(filepath.Dir(p)); err == nil && info.IsDir() {
 			return true
 		}
 	}

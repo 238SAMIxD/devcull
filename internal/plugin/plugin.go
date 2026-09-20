@@ -11,12 +11,14 @@ import (
 )
 
 type Manifest struct {
-	Name        string           `json:"name"`
-	Category    cleaner.Category `json:"category"`
-	Description string           `json:"description"`
-	Version     string           `json:"version"`
-	Entrypoint  []string         `json:"entrypoint"`
-	WorkingDir  string           `json:"-"`
+	Name     string           `json:"name"`
+	Category cleaner.Category `json:"category"`
+	Aliases  []string         `json:"aliases"`
+
+	Description string   `json:"description"`
+	Version     string   `json:"version"`
+	Entrypoint  []string `json:"entrypoint"`
+	WorkingDir  string   `json:"-"`
 }
 
 type SubprocessCleaner struct {
@@ -25,6 +27,7 @@ type SubprocessCleaner struct {
 
 func (p *SubprocessCleaner) Name() string               { return p.manifest.Name }
 func (p *SubprocessCleaner) Category() cleaner.Category { return p.manifest.Category }
+func (p *SubprocessCleaner) Aliases() []string          { return p.manifest.Aliases }
 
 func (p *SubprocessCleaner) IsInstalled(ctx context.Context) bool {
 	if len(p.manifest.Entrypoint) == 0 {

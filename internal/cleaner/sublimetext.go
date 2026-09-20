@@ -13,6 +13,8 @@ type SublimeCleaner struct{}
 func (c *SublimeCleaner) Name() string       { return "Sublime Text" }
 func (c *SublimeCleaner) Category() Category { return CategoryIDE }
 
+func (c *SublimeCleaner) Aliases() []string { return nil }
+
 func (c *SublimeCleaner) getPaths() []string {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -38,7 +40,7 @@ func (c *SublimeCleaner) getPaths() []string {
 
 func (c *SublimeCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range c.getPaths() {
-		if info, err := os.Stat(p); err == nil && info.IsDir() {
+		if info, err := os.Stat(filepath.Dir(p)); err == nil && info.IsDir() {
 			return true
 		}
 	}

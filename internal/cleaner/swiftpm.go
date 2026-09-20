@@ -13,6 +13,8 @@ type SwiftPMCleaner struct{}
 func (s *SwiftPMCleaner) Name() string       { return "SwiftPM" }
 func (s *SwiftPMCleaner) Category() Category { return CategoryApple }
 
+func (s *SwiftPMCleaner) Aliases() []string { return nil }
+
 func (s *SwiftPMCleaner) getCachePaths() []string {
 	if runtime.GOOS != "darwin" {
 		home, err := os.UserHomeDir()
@@ -34,7 +36,7 @@ func (s *SwiftPMCleaner) getCachePaths() []string {
 
 func (s *SwiftPMCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range s.getCachePaths() {
-		if info, err := os.Stat(p); err == nil && info.IsDir() {
+		if info, err := os.Stat(filepath.Dir(p)); err == nil && info.IsDir() {
 			return true
 		}
 	}

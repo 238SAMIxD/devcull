@@ -19,6 +19,8 @@ func (u *UvCleaner) Category() Category {
 	return CategoryPython
 }
 
+func (u *UvCleaner) Aliases() []string { return nil }
+
 func (u *UvCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("uv"); err != nil {
 		return false

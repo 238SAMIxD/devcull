@@ -10,11 +10,13 @@ type mockCleaner struct {
 	category Category
 }
 
-func (m *mockCleaner) Name() string                        { return m.name }
-func (m *mockCleaner) Category() Category                  { return m.category }
+func (m *mockCleaner) Name() string       { return m.name }
+func (m *mockCleaner) Category() Category { return m.category }
+func (m *mockCleaner) Aliases() []string  { return nil }
+
 func (m *mockCleaner) IsInstalled(ctx context.Context) bool                   { return true }
 func (m *mockCleaner) EstimateReclaimable(ctx context.Context) (int64, error) { return 0, nil }
-func (m *mockCleaner) Clean(ctx context.Context, dryRun bool) (int64, error)    { return 0, nil }
+func (m *mockCleaner) Clean(ctx context.Context, dryRun bool) (int64, error)  { return 0, nil }
 
 func TestMatchesArg(t *testing.T) {
 	tests := []struct {

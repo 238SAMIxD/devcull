@@ -19,6 +19,8 @@ func (p *PnpmCleaner) Category() Category {
 	return CategoryNode
 }
 
+func (p *PnpmCleaner) Aliases() []string { return nil }
+
 func (p *PnpmCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("pnpm"); err != nil {
 		return false

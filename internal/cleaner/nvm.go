@@ -17,6 +17,8 @@ func (n *NvmCleaner) Category() Category {
 	return CategoryNode
 }
 
+func (n *NvmCleaner) Aliases() []string { return nil }
+
 func (n *NvmCleaner) IsInstalled(ctx context.Context) bool {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -64,7 +66,7 @@ func (n *NvmCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 		return 0, err
 	}
 	if cachePath != "" {
-		if err := removeAll(ctx, cachePath); err != nil && !os.IsNotExist(err) {
+		if err := os.RemoveAll(cachePath); err != nil && !os.IsNotExist(err) {
 			return 0, err
 		}
 	}

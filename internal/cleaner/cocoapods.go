@@ -13,6 +13,8 @@ type CocoaPodsCleaner struct{}
 func (c *CocoaPodsCleaner) Name() string       { return "CocoaPods" }
 func (c *CocoaPodsCleaner) Category() Category { return CategoryApple }
 
+func (c *CocoaPodsCleaner) Aliases() []string { return nil }
+
 func (c *CocoaPodsCleaner) getCachePaths() []string {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -28,7 +30,7 @@ func (c *CocoaPodsCleaner) getCachePaths() []string {
 
 func (c *CocoaPodsCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range c.getCachePaths() {
-		if info, err := os.Stat(p); err == nil && info.IsDir() {
+		if info, err := os.Stat(filepath.Dir(p)); err == nil && info.IsDir() {
 			return true
 		}
 	}

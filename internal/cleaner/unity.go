@@ -13,6 +13,8 @@ type UnityCleaner struct{}
 func (u *UnityCleaner) Name() string       { return "Unity" }
 func (u *UnityCleaner) Category() Category { return CategoryCSharp }
 
+func (u *UnityCleaner) Aliases() []string { return nil }
+
 func (u *UnityCleaner) getCachePaths() []string {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -79,7 +81,7 @@ func (u *UnityCleaner) getCachePaths() []string {
 
 func (u *UnityCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range u.getCachePaths() {
-		if info, err := os.Stat(p); err == nil && info.IsDir() {
+		if info, err := os.Stat(filepath.Dir(p)); err == nil && info.IsDir() {
 			return true
 		}
 	}

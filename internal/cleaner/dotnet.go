@@ -18,6 +18,8 @@ func (d *DotnetCleaner) Category() Category {
 	return CategoryCSharp
 }
 
+func (d *DotnetCleaner) Aliases() []string { return nil }
+
 func (d *DotnetCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("dotnet"); err != nil {
 		return false

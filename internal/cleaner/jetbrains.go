@@ -13,6 +13,8 @@ type JetBrainsCleaner struct{}
 func (c *JetBrainsCleaner) Name() string       { return "JetBrains" }
 func (c *JetBrainsCleaner) Category() Category { return CategoryIDE }
 
+func (c *JetBrainsCleaner) Aliases() []string { return []string{"idea", "intellij", "pycharm", "webstorm", "goland", "rider", "clion", "phpstorm", "rubymine"} }
+
 func (c *JetBrainsCleaner) getPaths() []string {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -35,7 +37,7 @@ func (c *JetBrainsCleaner) getPaths() []string {
 
 func (c *JetBrainsCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range c.getPaths() {
-		if info, err := os.Stat(p); err == nil && info.IsDir() {
+		if info, err := os.Stat(filepath.Dir(p)); err == nil && info.IsDir() {
 			return true
 		}
 	}

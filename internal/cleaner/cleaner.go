@@ -45,6 +45,8 @@ func AllCategories() []Category {
 type Cleaner interface {
 	Name() string
 	Category() Category
+	Aliases() []string
+
 	IsInstalled(ctx context.Context) bool
 	EstimateReclaimable(ctx context.Context) (int64, error)
 	Clean(ctx context.Context, dryRun bool) (int64, error)
@@ -271,35 +273,6 @@ func isSafeToDelete(targetPath string) bool {
 	return true
 }
 
-func removeAll(ctx context.Context, path string) error {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-	}
-
-	info, err := os.Lstat(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil
-		}
-		return err
-	}
-
-	if info.IsDir() {
-		entries, err := os.ReadDir(path)
-		if err != nil {
-			return err
-		}
-		for _, e := range entries {
-			if err := removeAll(ctx, filepath.Join(path, e.Name())); err != nil {
-				return err
-			}
-		}
-	}
-	return os.Remove(path)
-}
-
 func cleanDirs(ctx context.Context, paths []string, dryRun bool) (int64, error) {
 	before, err := dirsSize(ctx, paths)
 	if err != nil {
@@ -327,7 +300,7 @@ func cleanDirs(ctx context.Context, paths []string, dryRun bool) (int64, error) 
 			continue
 		}
 		abs = filepath.Clean(abs)
-		if err := removeAll(ctx, abs); err != nil && firstErr == nil {
+		if err := os.RemoveAll(abs); err != nil && firstErr == nil {
 			if !os.IsNotExist(err) {
 				firstErr = err
 			}
@@ -350,9 +323,9 @@ func cleanDirs(ctx context.Context, paths []string, dryRun bool) (int64, error) 
 }
 
 func MatchesArg(cleaner Cleaner, arg string) bool {
-	argLower := strings.ToLower(strings.TrimSpace(arg))
-	nameLower := strings.ToLower(cleaner.Name())
-	catLower := strings.ToLower(string(cleaner.Category()))
+	argLower := strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(arg, " ", ""), "-", ""))
+	nameLower := strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(cleaner.Name(), " ", ""), "-", ""))
+	catLower := strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(string(cleaner.Category()), " ", ""), "-", ""))
 
 	if nameLower == argLower {
 		return true
@@ -362,10 +335,17 @@ func MatchesArg(cleaner Cleaner, arg string) bool {
 		return true
 	}
 
+	for _, alias := range cleaner.Aliases() {
+		aliasLower := strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(alias, " ", ""), "-", ""))
+		if aliasLower == argLower {
+			return true
+		}
+	}
+
 	switch argLower {
 	case "py", "python3", "python":
 		return cleaner.Category() == CategoryPython
-	case "node", "node.js", "nodejs", "javascript", "typescript", "js", "ts":
+	case "node", "nodejs", "javascript", "typescript", "js", "ts":
 		return cleaner.Category() == CategoryNode
 	case "java", "jvm":
 		return cleaner.Category() == CategoryJava
@@ -403,10 +383,10 @@ func MatchesArg(cleaner Cleaner, arg string) bool {
 	case "kt", "konan":
 		return nameLower == "kotlin"
 	case "ue", "ue5", "unreal", "unrealengine":
-		return nameLower == "unreal engine"
+		return nameLower == "unrealengine"
 	case "swift", "spm":
 		return nameLower == "swiftpm"
-	case "x-code", "deriveddata", "commandlinetools", "clt", "cmdlinetools":
+	case "xcode", "deriveddata", "commandlinetools", "clt", "cmdlinetools":
 		return nameLower == "xcode"
 	}
 

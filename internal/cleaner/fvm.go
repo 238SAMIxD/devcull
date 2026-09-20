@@ -12,6 +12,8 @@ type FvmCleaner struct{}
 func (f *FvmCleaner) Name() string       { return "FVM" }
 func (f *FvmCleaner) Category() Category { return CategoryFlutter }
 
+func (f *FvmCleaner) Aliases() []string { return nil }
+
 func (f *FvmCleaner) getCachePaths() []string {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -31,7 +33,7 @@ func (f *FvmCleaner) getCachePaths() []string {
 
 func (f *FvmCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range f.getCachePaths() {
-		if info, err := os.Stat(p); err == nil && info.IsDir() {
+		if info, err := os.Stat(filepath.Dir(p)); err == nil && info.IsDir() {
 			return true
 		}
 	}

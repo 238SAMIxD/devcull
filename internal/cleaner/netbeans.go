@@ -13,6 +13,8 @@ type NetBeansCleaner struct{}
 func (c *NetBeansCleaner) Name() string       { return "NetBeans" }
 func (c *NetBeansCleaner) Category() Category { return CategoryIDE }
 
+func (c *NetBeansCleaner) Aliases() []string { return nil }
+
 func (c *NetBeansCleaner) getPaths() []string {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -35,7 +37,7 @@ func (c *NetBeansCleaner) getPaths() []string {
 
 func (c *NetBeansCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range c.getPaths() {
-		if info, err := os.Stat(p); err == nil && info.IsDir() {
+		if info, err := os.Stat(filepath.Dir(p)); err == nil && info.IsDir() {
 			return true
 		}
 	}

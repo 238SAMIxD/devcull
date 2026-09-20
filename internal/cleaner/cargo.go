@@ -20,6 +20,8 @@ func (c *CargoCleaner) Category() Category {
 	return CategoryRust
 }
 
+func (c *CargoCleaner) Aliases() []string { return nil }
+
 func (c *CargoCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("cargo"); err != nil {
 		return false

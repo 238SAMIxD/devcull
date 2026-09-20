@@ -12,6 +12,8 @@ type GradleCleaner struct{}
 func (g *GradleCleaner) Name() string       { return "Gradle" }
 func (g *GradleCleaner) Category() Category { return CategoryJava }
 
+func (g *GradleCleaner) Aliases() []string { return nil }
+
 func (g *GradleCleaner) getCachePath() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -25,7 +27,7 @@ func (g *GradleCleaner) IsInstalled(ctx context.Context) bool {
 	if err != nil {
 		return false
 	}
-	info, err := os.Stat(p)
+	info, err := os.Stat(filepath.Dir(p))
 	return err == nil && info.IsDir()
 }
 

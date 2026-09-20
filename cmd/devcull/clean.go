@@ -1,11 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"context"
-	"os/signal"
-
 	"fmt"
 	"os"
+	"os/signal"
+	"strings"
 
 	"github.com/238SAMIxD/devcull/internal/cleaner"
 	"github.com/238SAMIxD/devcull/internal/engine"
@@ -15,6 +16,7 @@ import (
 )
 
 var dryRun bool
+var yesRun bool
 
 var cleanCmd = &cobra.Command{
 	Use:   "clean [tool...]",
@@ -43,6 +45,30 @@ var cleanCmd = &cobra.Command{
 
 		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 		defer stop()
+
+		if !dryRun && !yesRun {
+			fmt.Println("Scanning...")
+			scanResults := engine.Scan(ctx, activeCleaners)
+			var totalReclaimable int64
+			for _, r := range scanResults {
+				if !r.Skipped && r.Err == nil {
+					totalReclaimable += r.Reclaimable
+				}
+			}
+			if totalReclaimable == 0 {
+				fmt.Println("Nothing to clean.")
+				return nil
+			}
+
+			fmt.Printf("Are you sure you want to reclaim %s? [y/N] ", ui.FormatBytes(totalReclaimable))
+			reader := bufio.NewReader(os.Stdin)
+			resp, _ := reader.ReadString('\n')
+			resp = strings.ToLower(strings.TrimSpace(resp))
+			if resp != "y" && resp != "yes" {
+				fmt.Println("Aborted.")
+				return nil
+			}
+		}
 
 		results := engine.Run(ctx, activeCleaners, dryRun)
 
@@ -83,11 +109,13 @@ var cleanCmd = &cobra.Command{
 				continue
 			}
 
-			if dryRun {
-				fmt.Printf("[DRY RUN] %s would reclaim %s\n", r.CleanerName, ui.FormatBytes(r.Reclaimed))
-			} else {
-				fmt.Printf("✅ %s reclaimed %s\n", r.CleanerName, ui.FormatBytes(r.Reclaimed))
-				successfulRuns = append(successfulRuns, runStat{name: r.CleanerName, reclaimed: r.Reclaimed})
+			if r.Reclaimed > 0 {
+				if dryRun {
+					fmt.Printf("[DRY RUN] %s would reclaim %s\n", r.CleanerName, ui.FormatBytes(r.Reclaimed))
+				} else {
+					fmt.Printf("✅ %s reclaimed %s\n", r.CleanerName, ui.FormatBytes(r.Reclaimed))
+					successfulRuns = append(successfulRuns, runStat{name: r.CleanerName, reclaimed: r.Reclaimed})
+				}
 			}
 		}
 
@@ -101,6 +129,7 @@ var cleanCmd = &cobra.Command{
 					fmt.Printf("⚠️ Failed to load stats for saving: %v\n", err)
 					hasError = true
 				} else {
+					defer state.Unlock()
 					for _, run := range successfulRuns {
 						state.AddRun(run.name, run.reclaimed)
 					}
@@ -122,5 +151,6 @@ var cleanCmd = &cobra.Command{
 
 func init() {
 	cleanCmd.Flags().BoolVar(&dryRun, "dry-run", false, "Simulate cleanup without deleting files")
+	cleanCmd.Flags().BoolVarP(&yesRun, "yes", "y", false, "Skip confirmation prompt")
 	rootCmd.AddCommand(cleanCmd)
 }

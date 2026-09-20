@@ -19,6 +19,8 @@ func (n *NpmCleaner) Category() Category {
 	return CategoryNode
 }
 
+func (n *NpmCleaner) Aliases() []string { return nil }
+
 func (n *NpmCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("npm"); err != nil {
 		return false

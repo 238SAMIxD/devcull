@@ -19,6 +19,8 @@ func (d *DenoCleaner) Category() Category {
 	return CategoryNode
 }
 
+func (d *DenoCleaner) Aliases() []string { return nil }
+
 func (d *DenoCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("deno"); err != nil {
 		return false

@@ -19,6 +19,8 @@ func (g *GoCleaner) Category() Category {
 	return CategoryGo
 }
 
+func (g *GoCleaner) Aliases() []string { return nil }
+
 func (g *GoCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("go"); err != nil {
 		return false
