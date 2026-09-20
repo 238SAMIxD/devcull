@@ -169,118 +169,92 @@ func isSafeToDelete(targetPath string) bool {
 		return false
 	}
 
-	abs, err := filepath.Abs(targetPath)
+	evalPath, err := filepath.EvalSymlinks(targetPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			evalPath = targetPath
+		} else {
+			return false
+		}
+	}
+
+	abs, err := filepath.Abs(evalPath)
 	if err != nil {
 		return false
 	}
 	abs = filepath.Clean(abs)
 
-	vol := filepath.VolumeName(abs)
-	if abs == "/" || abs == "\\" || abs == vol+"\\" || abs == vol+"/" {
+	home, err := os.UserHomeDir()
+	if err != nil {
 		return false
 	}
+	cleanHome := filepath.Clean(home)
 
-	var exactMatchRoots []string
-	var prefixMatchTrees []string
+	var safeRoots []string
 
-	home, err := os.UserHomeDir()
-	if err == nil {
-		cleanHome := filepath.Clean(home)
-		exactMatchRoots = append(exactMatchRoots, cleanHome)
-		prefixMatchTrees = append(prefixMatchTrees,
-			filepath.Join(cleanHome, "Desktop"),
-			filepath.Join(cleanHome, "Documents"),
-			filepath.Join(cleanHome, "Downloads"),
-			filepath.Join(cleanHome, "Pictures"),
-			filepath.Join(cleanHome, "Music"),
-			filepath.Join(cleanHome, "Movies"),
-			filepath.Join(cleanHome, "Public"),
-		)
+	if cacheDir, err := os.UserCacheDir(); err == nil {
+		safeRoots = append(safeRoots, filepath.Clean(cacheDir))
 	}
 
-	if os.PathSeparator == '/' {
-		exactMatchRoots = append(exactMatchRoots, "/Users", "/Library", "/tmp", "/var")
-		prefixMatchTrees = append(prefixMatchTrees,
-			"/usr", "/usr/bin", "/usr/lib", "/usr/local", "/usr/local/bin",
-			"/bin", "/sbin", "/etc", "/System",
-			"/Applications", "/Network", "/Volumes",
-		)
-		if err == nil {
-			exactMatchRoots = append(exactMatchRoots, filepath.Join(home, "Library"))
-		}
-	} else if os.PathSeparator == '\\' {
-		sysRoot := os.Getenv("SystemRoot")
-		if sysRoot == "" {
-			sysRoot = `C:\Windows`
-		}
-		progFiles := os.Getenv("ProgramFiles")
-		if progFiles == "" {
-			progFiles = `C:\Program Files`
-		}
-		progFiles86 := os.Getenv("ProgramFiles(x86)")
-		if progFiles86 == "" {
-			progFiles86 = `C:\Program Files (x86)`
-		}
-		exactMatchRoots = append(exactMatchRoots, `C:\Users`)
-		if appData := os.Getenv("APPDATA"); appData != "" {
-			exactMatchRoots = append(exactMatchRoots, appData)
-		}
-		if localAppData := os.Getenv("LOCALAPPDATA"); localAppData != "" {
-			exactMatchRoots = append(exactMatchRoots, localAppData)
-		}
-		prefixMatchTrees = append(prefixMatchTrees,
-			sysRoot,
-			filepath.Join(sysRoot, "System32"),
-			progFiles,
-			progFiles86,
-		)
-		if err == nil {
-			exactMatchRoots = append(exactMatchRoots, filepath.Join(home, "AppData"))
-		}
+	safeRoots = append(safeRoots,
+		filepath.Join(cleanHome, "Library", "Caches"),
+		filepath.Join(cleanHome, "Library", "Developer"),
+		filepath.Join(cleanHome, ".cache"),
+		filepath.Join(cleanHome, ".local", "share"),
+		filepath.Join(cleanHome, ".gradle"),
+		filepath.Join(cleanHome, ".bun"),
+		filepath.Join(cleanHome, ".nvm"),
+		filepath.Join(cleanHome, ".cargo"),
+		filepath.Join(cleanHome, ".rustup"),
+		filepath.Join(cleanHome, ".npm"),
+		filepath.Join(cleanHome, ".pnpm-state"),
+		filepath.Join(cleanHome, ".yarn"),
+		filepath.Join(cleanHome, ".docker"),
+		filepath.Join(cleanHome, ".poetry"),
+		filepath.Join(cleanHome, ".ccache"),
+		filepath.Join(cleanHome, ".conan"),
+		filepath.Join(cleanHome, ".conan2"),
+		filepath.Join(cleanHome, ".dotnet"),
+		filepath.Join(cleanHome, ".android"),
+		filepath.Join(cleanHome, ".dartServer"),
+		filepath.Join(cleanHome, ".fvm"),
+		filepath.Join(cleanHome, ".cocoapods"),
+		filepath.Join(cleanHome, ".phpbrew"),
+		filepath.Join(cleanHome, ".eclipse"),
+		filepath.Join(cleanHome, ".vscode"),
+	)
+
+	if localAppData := os.Getenv("LOCALAPPDATA"); localAppData != "" {
+		safeRoots = append(safeRoots, filepath.Clean(localAppData))
 	}
 
-	for _, root := range exactMatchRoots {
+	for _, root := range safeRoots {
 		if root == "" || root == "." {
 			continue
 		}
 		cleanRoot := filepath.Clean(root)
 		if strings.EqualFold(abs, cleanRoot) {
-			return false
-		}
-	}
-
-	for _, tree := range prefixMatchTrees {
-		if tree == "" || tree == "." {
 			continue
 		}
-		cleanTree := filepath.Clean(tree)
-		if strings.EqualFold(abs, cleanTree) {
-			return false
-		}
-		if strings.HasPrefix(strings.ToLower(abs), strings.ToLower(cleanTree+string(filepath.Separator))) {
-			return false
+		if strings.HasPrefix(strings.ToLower(abs), strings.ToLower(cleanRoot+string(filepath.Separator))) {
+			return true
 		}
 	}
 
-	pWithoutVol := abs[len(vol):]
-	parts := strings.Split(filepath.ToSlash(pWithoutVol), "/")
-
-	depth := 0
-	for _, part := range parts {
-		if part != "" {
-			depth++
-		}
-	}
-
-	if depth < 2 {
-		return false
-	}
-
-	return true
+	return false
 }
 
 func cleanDirs(ctx context.Context, paths []string, dryRun bool) (int64, error) {
-	before, err := dirsSize(ctx, paths)
+	var safePaths []string
+	for _, p := range paths {
+		if isSafeToDelete(p) {
+			safePaths = append(safePaths, p)
+		} else {
+			fmt.Fprintf(os.Stderr, "WARN: Path rejected by safety guards: %s\n", p)
+		}
+	}
+
+	before, err := dirsSize(ctx, safePaths)
 	if err != nil {
 		return 0, err
 	}
@@ -289,15 +263,11 @@ func cleanDirs(ctx context.Context, paths []string, dryRun bool) (int64, error) 
 	}
 
 	var firstErr error
-	for _, p := range paths {
+	for _, p := range safePaths {
 		select {
 		case <-ctx.Done():
 			return 0, ctx.Err()
 		default:
-		}
-		if !isSafeToDelete(p) {
-			fmt.Fprintf(os.Stderr, "WARN: Path rejected by safety guards: %s\n", p)
-			continue
 		}
 		abs, err := filepath.Abs(p)
 		if err != nil {
@@ -314,7 +284,7 @@ func cleanDirs(ctx context.Context, paths []string, dryRun bool) (int64, error) 
 		}
 	}
 
-	after, err := dirsSize(ctx, paths)
+	after, err := dirsSize(ctx, safePaths)
 	if err != nil {
 		if firstErr == nil {
 			firstErr = err

@@ -52,32 +52,12 @@ func (n *NvmCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
 }
 
 func (n *NvmCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
-	before, err := n.EstimateReclaimable(ctx)
-	if err != nil {
-		return 0, err
-	}
-
-	if dryRun {
-		return before, nil
-	}
-
 	cachePath, err := n.getCachePath()
 	if err != nil {
 		return 0, err
 	}
-	if cachePath != "" {
-		if err := os.RemoveAll(cachePath); err != nil && !os.IsNotExist(err) {
-			return 0, err
-		}
+	if cachePath == "" {
+		return 0, nil
 	}
-
-	after, err := dirSize(ctx, cachePath)
-	if err != nil {
-		return 0, err
-	}
-	reclaimed := before - after
-	if reclaimed < 0 {
-		reclaimed = 0
-	}
-	return reclaimed, nil
+	return cleanDirs(ctx, []string{cachePath}, dryRun)
 }
