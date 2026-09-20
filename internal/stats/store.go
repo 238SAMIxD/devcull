@@ -148,5 +148,6 @@ func (s *State) Save() error {
 	if err := os.WriteFile(tmp, b, 0644); err != nil {
 		return err
 	}
+	os.Remove(path)
 	return os.Rename(tmp, path)
 }

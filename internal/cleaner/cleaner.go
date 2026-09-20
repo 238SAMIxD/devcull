@@ -155,7 +155,7 @@ func dirsSize(paths []string) (int64, error) {
 func cleanDirs(paths []string, dryRun bool) (int64, error) {
 	before, err := dirsSize(paths)
 	if err != nil {
-		return before, err
+		return 0, err
 	}
 	if before == 0 || dryRun {
 		return before, nil
@@ -171,8 +171,11 @@ func cleanDirs(paths []string, dryRun bool) (int64, error) {
 	}
 
 	after, err := dirsSize(paths)
-	if err != nil && firstErr == nil {
-		firstErr = err
+	if err != nil {
+		if firstErr == nil {
+			firstErr = err
+		}
+		return 0, firstErr
 	}
 
 	reclaimed := before - after
