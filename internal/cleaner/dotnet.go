@@ -30,8 +30,8 @@ func (d *DotnetCleaner) IsInstalled(ctx context.Context) bool {
 	return true
 }
 
-func (d *DotnetCleaner) getCachePaths() []string {
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+func (d *DotnetCleaner) getCachePaths(ctx context.Context) []string {
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "dotnet", "nuget", "locals", "all", "--list").Output()
 	if err != nil {
@@ -58,7 +58,7 @@ func (d *DotnetCleaner) getCachePaths() []string {
 }
 
 func (d *DotnetCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
-	return dirsSize(ctx, d.getCachePaths())
+	return dirsSize(ctx, d.getCachePaths(ctx))
 }
 
 func (d *DotnetCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
@@ -71,13 +71,13 @@ func (d *DotnetCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
-	defer cancel()
-	if err := exec.CommandContext(ctx, "dotnet", "nuget", "locals", "all", "--clear").Run(); err != nil {
+	ctx2, cancel2 := context.WithTimeout(ctx, 60*time.Second)
+	defer cancel2()
+	if err := exec.CommandContext(ctx2, "dotnet", "nuget", "locals", "all", "--clear").Run(); err != nil {
 		return 0, err
 	}
 
-	after, err := dirsSize(ctx, d.getCachePaths())
+	after, err := dirsSize(ctx, d.getCachePaths(ctx))
 	if err != nil {
 		return 0, err
 	}

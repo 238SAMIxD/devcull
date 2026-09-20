@@ -32,8 +32,8 @@ func (b *BunCleaner) IsInstalled(ctx context.Context) bool {
 	return true
 }
 
-func (b *BunCleaner) getCachePath() (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+func (b *BunCleaner) getCachePath(ctx context.Context) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "bun", "pm", "cache").Output()
 	if err != nil {
@@ -47,7 +47,7 @@ func (b *BunCleaner) getCachePath() (string, error) {
 }
 
 func (b *BunCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
-	cachePath, err := b.getCachePath()
+	cachePath, err := b.getCachePath(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -73,7 +73,7 @@ func (b *BunCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	cachePath, err := b.getCachePath()
+	cachePath, err := b.getCachePath(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -81,7 +81,7 @@ func (b *BunCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 		return 0, nil
 	}
 	if cachePath != "" {
-		if err := os.RemoveAll(cachePath); err != nil && !os.IsNotExist(err) {
+		if err := removeAll(ctx, cachePath); err != nil && !os.IsNotExist(err) {
 			return 0, err
 		}
 	}

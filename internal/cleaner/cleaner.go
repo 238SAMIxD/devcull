@@ -259,6 +259,35 @@ func isSafeToDelete(targetPath string) bool {
 	return true
 }
 
+func removeAll(ctx context.Context, path string) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
+	info, err := os.Lstat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+
+	if info.IsDir() {
+		entries, err := os.ReadDir(path)
+		if err != nil {
+			return err
+		}
+		for _, e := range entries {
+			if err := removeAll(ctx, filepath.Join(path, e.Name())); err != nil {
+				return err
+			}
+		}
+	}
+	return os.Remove(path)
+}
+
 func cleanDirs(ctx context.Context, paths []string, dryRun bool) (int64, error) {
 	before, err := dirsSize(ctx, paths)
 	if err != nil {
@@ -286,7 +315,7 @@ func cleanDirs(ctx context.Context, paths []string, dryRun bool) (int64, error) 
 			continue
 		}
 		abs = filepath.Clean(abs)
-		if err := os.RemoveAll(abs); err != nil && firstErr == nil {
+		if err := removeAll(ctx, abs); err != nil && firstErr == nil {
 			if !os.IsNotExist(err) {
 				firstErr = err
 			}

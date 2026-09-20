@@ -64,7 +64,7 @@ func (n *NvmCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 		return 0, err
 	}
 	if cachePath != "" {
-		if err := os.RemoveAll(cachePath); err != nil && !os.IsNotExist(err) {
+		if err := removeAll(ctx, cachePath); err != nil && !os.IsNotExist(err) {
 			return 0, err
 		}
 	}

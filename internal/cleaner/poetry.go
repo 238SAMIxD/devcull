@@ -31,8 +31,8 @@ func (p *PoetryCleaner) IsInstalled(ctx context.Context) bool {
 	return true
 }
 
-func (p *PoetryCleaner) getCachePaths() []string {
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+func (p *PoetryCleaner) getCachePaths(ctx context.Context) []string {
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "poetry", "config", "cache-dir").Output()
 	if err != nil {
@@ -49,7 +49,7 @@ func (p *PoetryCleaner) getCachePaths() []string {
 }
 
 func (p *PoetryCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
-	paths := p.getCachePaths()
+	paths := p.getCachePaths(ctx)
 	if len(paths) == 0 {
 		return 0, nil
 	}
@@ -57,6 +57,6 @@ func (p *PoetryCleaner) EstimateReclaimable(ctx context.Context) (int64, error) 
 }
 
 func (p *PoetryCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
-	paths := p.getCachePaths()
+	paths := p.getCachePaths(ctx)
 	return cleanDirs(ctx, paths, dryRun)
 }

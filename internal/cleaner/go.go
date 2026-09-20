@@ -31,16 +31,16 @@ func (g *GoCleaner) IsInstalled(ctx context.Context) bool {
 	return true
 }
 
-func (g *GoCleaner) getCachePaths() ([]string, error) {
+func (g *GoCleaner) getCachePaths(ctx context.Context) ([]string, error) {
 	var paths []string
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-	defer cancel()
-	if out, err := exec.CommandContext(ctx, "go", "env", "GOCACHE").Output(); err == nil {
+	ctx1, cancel1 := context.WithTimeout(ctx, 60*time.Second)
+	defer cancel1()
+	if out, err := exec.CommandContext(ctx1, "go", "env", "GOCACHE").Output(); err == nil {
 		if p := strings.TrimSpace(string(out)); p != "" {
 			paths = append(paths, p)
 		}
 	}
-	ctx2, cancel2 := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx2, cancel2 := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel2()
 	if out, err := exec.CommandContext(ctx2, "go", "env", "GOMODCACHE").Output(); err == nil {
 		if p := strings.TrimSpace(string(out)); p != "" {
@@ -54,7 +54,7 @@ func (g *GoCleaner) getCachePaths() ([]string, error) {
 }
 
 func (g *GoCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
-	paths, err := g.getCachePaths()
+	paths, err := g.getCachePaths(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -77,7 +77,7 @@ func (g *GoCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 		return 0, err
 	}
 
-	paths, err := g.getCachePaths()
+	paths, err := g.getCachePaths(ctx)
 	if err != nil {
 		return 0, err
 	}

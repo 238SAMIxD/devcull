@@ -31,8 +31,8 @@ func (b *BrewCleaner) IsInstalled(ctx context.Context) bool {
 	return true
 }
 
-func (b *BrewCleaner) getCachePath() (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+func (b *BrewCleaner) getCachePath(ctx context.Context) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "brew", "--cache").Output()
 	if err != nil {
@@ -46,7 +46,7 @@ func (b *BrewCleaner) getCachePath() (string, error) {
 }
 
 func (b *BrewCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
-	cachePath, err := b.getCachePath()
+	cachePath, err := b.getCachePath(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -63,13 +63,13 @@ func (b *BrewCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
-	defer cancel()
-	if err := exec.CommandContext(ctx, "brew", "cleanup").Run(); err != nil {
+	ctx2, cancel2 := context.WithTimeout(ctx, 60*time.Second)
+	defer cancel2()
+	if err := exec.CommandContext(ctx2, "brew", "cleanup").Run(); err != nil {
 		return 0, err
 	}
 
-	cachePath, err := b.getCachePath()
+	cachePath, err := b.getCachePath(ctx)
 	if err != nil {
 		return 0, err
 	}

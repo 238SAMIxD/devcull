@@ -31,8 +31,8 @@ func (n *NpmCleaner) IsInstalled(ctx context.Context) bool {
 	return true
 }
 
-func (n *NpmCleaner) getCachePath() (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+func (n *NpmCleaner) getCachePath(ctx context.Context) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "npm", "config", "get", "cache").Output()
 	if err != nil {
@@ -46,7 +46,7 @@ func (n *NpmCleaner) getCachePath() (string, error) {
 }
 
 func (n *NpmCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
-	cachePath, err := n.getCachePath()
+	cachePath, err := n.getCachePath(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -63,13 +63,13 @@ func (n *NpmCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
-	defer cancel()
-	if err := exec.CommandContext(ctx, "npm", "cache", "clean", "--force").Run(); err != nil {
+	ctx2, cancel2 := context.WithTimeout(ctx, 60*time.Second)
+	defer cancel2()
+	if err := exec.CommandContext(ctx2, "npm", "cache", "clean", "--force").Run(); err != nil {
 		return 0, err
 	}
 
-	cachePath, err := n.getCachePath()
+	cachePath, err := n.getCachePath(ctx)
 	if err != nil {
 		return 0, err
 	}
