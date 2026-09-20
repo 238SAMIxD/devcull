@@ -2,6 +2,8 @@ package cleaner
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -65,5 +67,66 @@ func TestMatchesArg(t *testing.T) {
 				t.Errorf("MatchesArg(cleaner={%s, %s}, %q) = %v, want %v", tt.cleaner.Name(), tt.cleaner.Category(), tt.arg, got, tt.want)
 			}
 		})
+	}
+}
+
+func TestIsSafeToDelete(t *testing.T) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		t.Fatalf("failed to get home dir: %v", err)
+	}
+
+	tests := []struct {
+		name string
+		path string
+		want bool
+	}{
+		{"reject root", "/", false},
+		{"reject var lib", "/var/lib", false},
+		{"reject desktop", filepath.Join(home, "Desktop"), false},
+		{"allow cache test", filepath.Join(home, ".cache", "test"), true},
+	}
+
+	if localAppData := os.Getenv("LOCALAPPDATA"); localAppData != "" {
+		tests = append(tests, struct {
+			name string
+			path string
+			want bool
+		}{"allow localappdata test", filepath.Join(localAppData, "test"), true})
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := isSafeToDelete(tt.path)
+			if got != tt.want {
+				t.Errorf("isSafeToDelete(%q) = %v, want %v", tt.path, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRemoveAllCtx_Cancellation(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "cull-test-*")
+	if err != nil {
+		t.Fatalf("failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	testFile := filepath.Join(tempDir, "test.txt")
+	if err := os.WriteFile(testFile, []byte("data"), 0644); err != nil {
+		t.Fatalf("failed to write test file: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel() // pre-cancel the context
+
+	err = removeAllCtx(ctx, tempDir)
+	if err == nil || err != context.Canceled {
+		t.Errorf("expected context.Canceled error, got: %v", err)
+	}
+
+	// Verify the directory and file still exist
+	if _, err := os.Stat(testFile); os.IsNotExist(err) {
+		t.Errorf("test file was deleted despite canceled context")
 	}
 }
