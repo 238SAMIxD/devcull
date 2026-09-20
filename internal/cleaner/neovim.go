@@ -18,11 +18,7 @@ func (c *NeovimCleaner) getPaths() []string {
 	}
 
 	if runtime.GOOS == "windows" {
-		localAppData := os.Getenv("LOCALAPPDATA")
-		if localAppData == "" {
-			return nil
-		}
-		return []string{filepath.Join(localAppData, "nvim-data", "swap")}
+		return nil
 	}
 	return []string{
 		filepath.Join(home, ".cache", "nvim"),

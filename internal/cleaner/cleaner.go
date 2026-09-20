@@ -152,6 +152,44 @@ func dirsSize(paths []string) (int64, error) {
 	return total, firstErr
 }
 
+func isSafeToDelete(targetPath string) bool {
+	if targetPath == "" {
+		return false
+	}
+
+	abs, err := filepath.Abs(targetPath)
+	if err != nil {
+		return false
+	}
+	abs = filepath.Clean(abs)
+
+	vol := filepath.VolumeName(abs)
+	if abs == "/" || abs == "\\" || abs == vol+"\\" || abs == vol+"/" {
+		return false
+	}
+
+	home, err := os.UserHomeDir()
+	if err == nil && abs == filepath.Clean(home) {
+		return false
+	}
+
+	pWithoutVol := abs[len(vol):]
+	parts := strings.Split(filepath.ToSlash(pWithoutVol), "/")
+
+	depth := 0
+	for _, part := range parts {
+		if part != "" {
+			depth++
+		}
+	}
+
+	if depth < 2 {
+		return false
+	}
+
+	return true
+}
+
 func cleanDirs(paths []string, dryRun bool) (int64, error) {
 	before, err := dirsSize(paths)
 	if err != nil {
@@ -163,6 +201,9 @@ func cleanDirs(paths []string, dryRun bool) (int64, error) {
 
 	var firstErr error
 	for _, p := range paths {
+		if !isSafeToDelete(p) {
+			continue
+		}
 		if err := os.RemoveAll(p); err != nil && firstErr == nil {
 			if !os.IsNotExist(err) {
 				firstErr = err
