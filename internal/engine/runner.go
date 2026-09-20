@@ -34,7 +34,16 @@ func Run(ctx context.Context, cleaners []cleaner.Cleaner, dryRun bool) []Result 
 		go func(clr cleaner.Cleaner) {
 			defer wg.Done()
 
-			sem <- struct{}{}
+			select {
+			case sem <- struct{}{}:
+			case <-ctx.Done():
+				resultsCh <- Result{
+					CleanerName: clr.Name(),
+					Category:    clr.Category(),
+					Err:         ctx.Err(),
+				}
+				return
+			}
 			defer func() { <-sem }()
 
 			select {
@@ -87,7 +96,16 @@ func Scan(ctx context.Context, cleaners []cleaner.Cleaner) []ScanResult {
 		go func(clr cleaner.Cleaner) {
 			defer wg.Done()
 
-			sem <- struct{}{}
+			select {
+			case sem <- struct{}{}:
+			case <-ctx.Done():
+				resultsCh <- ScanResult{
+					CleanerName: clr.Name(),
+					Category:    clr.Category(),
+					Err:         ctx.Err(),
+				}
+				return
+			}
 			defer func() { <-sem }()
 
 			select {

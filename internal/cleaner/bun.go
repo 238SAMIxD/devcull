@@ -7,6 +7,7 @@ import (
 
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -37,11 +38,33 @@ func (b *BunCleaner) getCachePath(ctx context.Context) (string, error) {
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "bun", "pm", "cache").Output()
 	if err != nil {
-		return "", err
+		home, homeErr := os.UserHomeDir()
+		if homeErr != nil {
+			return "", err
+		}
+		if os.PathSeparator == '\\' {
+			localAppData := os.Getenv("LOCALAPPDATA")
+			if localAppData != "" {
+				return filepath.Join(localAppData, "bun", "install", "cache"), nil
+			}
+			return filepath.Join(home, "AppData", "Local", "bun", "install", "cache"), nil
+		}
+		return filepath.Join(home, ".bun", "install", "cache"), nil
 	}
 	p := strings.TrimSpace(string(out))
 	if p == "" {
-		return "", fmt.Errorf("empty cache path returned")
+		home, homeErr := os.UserHomeDir()
+		if homeErr != nil {
+			return "", fmt.Errorf("empty cache path returned")
+		}
+		if os.PathSeparator == '\\' {
+			localAppData := os.Getenv("LOCALAPPDATA")
+			if localAppData != "" {
+				return filepath.Join(localAppData, "bun", "install", "cache"), nil
+			}
+			return filepath.Join(home, "AppData", "Local", "bun", "install", "cache"), nil
+		}
+		return filepath.Join(home, ".bun", "install", "cache"), nil
 	}
 	return p, nil
 }

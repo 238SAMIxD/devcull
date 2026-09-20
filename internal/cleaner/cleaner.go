@@ -178,13 +178,14 @@ func isSafeToDelete(targetPath string) bool {
 		return false
 	}
 
-	var blocklist []string
+	var exactMatchRoots []string
+	var prefixMatchTrees []string
 
 	home, err := os.UserHomeDir()
 	if err == nil {
 		cleanHome := filepath.Clean(home)
-		blocklist = append(blocklist,
-			cleanHome,
+		exactMatchRoots = append(exactMatchRoots, cleanHome)
+		prefixMatchTrees = append(prefixMatchTrees,
 			filepath.Join(cleanHome, "Desktop"),
 			filepath.Join(cleanHome, "Documents"),
 			filepath.Join(cleanHome, "Downloads"),
@@ -196,13 +197,14 @@ func isSafeToDelete(targetPath string) bool {
 	}
 
 	if os.PathSeparator == '/' {
-		blocklist = append(blocklist,
+		exactMatchRoots = append(exactMatchRoots, "/Users")
+		prefixMatchTrees = append(prefixMatchTrees,
 			"/usr", "/usr/bin", "/usr/lib", "/usr/local", "/usr/local/bin",
 			"/bin", "/sbin", "/etc", "/var", "/tmp", "/Library", "/System",
-			"/Applications", "/Network", "/Users", "/Volumes",
+			"/Applications", "/Network", "/Volumes",
 		)
 		if err == nil {
-			blocklist = append(blocklist, filepath.Join(home, "Library"))
+			prefixMatchTrees = append(prefixMatchTrees, filepath.Join(home, "Library"))
 		}
 	} else if os.PathSeparator == '\\' {
 		sysRoot := os.Getenv("SystemRoot")
@@ -217,27 +219,37 @@ func isSafeToDelete(targetPath string) bool {
 		if progFiles86 == "" {
 			progFiles86 = `C:\Program Files (x86)`
 		}
-		blocklist = append(blocklist,
+		exactMatchRoots = append(exactMatchRoots, `C:\Users`)
+		prefixMatchTrees = append(prefixMatchTrees,
 			sysRoot,
 			filepath.Join(sysRoot, "System32"),
 			progFiles,
 			progFiles86,
-			`C:\Users`,
 		)
 		if err == nil {
-			blocklist = append(blocklist, filepath.Join(home, "AppData"))
+			prefixMatchTrees = append(prefixMatchTrees, filepath.Join(home, "AppData"))
 		}
 	}
 
-	for _, blocked := range blocklist {
-		if blocked == "" || blocked == "." {
+	for _, root := range exactMatchRoots {
+		if root == "" || root == "." {
 			continue
 		}
-		cleanBlocked := filepath.Clean(blocked)
-		if strings.EqualFold(abs, cleanBlocked) {
+		cleanRoot := filepath.Clean(root)
+		if strings.EqualFold(abs, cleanRoot) {
 			return false
 		}
-		if strings.HasPrefix(strings.ToLower(abs), strings.ToLower(cleanBlocked+string(filepath.Separator))) {
+	}
+
+	for _, tree := range prefixMatchTrees {
+		if tree == "" || tree == "." {
+			continue
+		}
+		cleanTree := filepath.Clean(tree)
+		if strings.EqualFold(abs, cleanTree) {
+			return false
+		}
+		if strings.HasPrefix(strings.ToLower(abs), strings.ToLower(cleanTree+string(filepath.Separator))) {
 			return false
 		}
 	}
