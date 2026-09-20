@@ -1,9 +1,11 @@
 package plugin
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"os/exec"
+	"time"
 
 	"github.com/238SAMIxD/devcull/internal/cleaner"
 )
@@ -29,8 +31,11 @@ func (p *SubprocessCleaner) IsInstalled() bool {
 		return false
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
 	cmdArgs := append(p.manifest.Entrypoint[1:], "installed")
-	cmd := exec.Command(p.manifest.Entrypoint[0], cmdArgs...)
+	cmd := exec.CommandContext(ctx, p.manifest.Entrypoint[0], cmdArgs...)
 	cmd.Dir = p.manifest.WorkingDir
 
 	out, err := cmd.Output()
@@ -48,8 +53,11 @@ func (p *SubprocessCleaner) IsInstalled() bool {
 }
 
 func (p *SubprocessCleaner) EstimateReclaimable() (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
 	cmdArgs := append(p.manifest.Entrypoint[1:], "estimate")
-	cmd := exec.Command(p.manifest.Entrypoint[0], cmdArgs...)
+	cmd := exec.CommandContext(ctx, p.manifest.Entrypoint[0], cmdArgs...)
 	cmd.Dir = p.manifest.WorkingDir
 
 	out, err := cmd.Output()
@@ -77,7 +85,10 @@ func (p *SubprocessCleaner) Clean(dryRun bool) (int64, error) {
 		args = append(args, "--dry-run")
 	}
 
-	cmd := exec.Command(p.manifest.Entrypoint[0], args...)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, p.manifest.Entrypoint[0], args...)
 	cmd.Dir = p.manifest.WorkingDir
 
 	out, err := cmd.Output()

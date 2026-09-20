@@ -33,7 +33,7 @@ func (c *JetBrainsCleaner) getPaths() []string {
 
 func (c *JetBrainsCleaner) IsInstalled() bool {
 	for _, p := range c.getPaths() {
-		if _, err := os.Stat(p); err == nil {
+		if info, err := os.Stat(p); err == nil && info.IsDir() {
 			return true
 		}
 	}

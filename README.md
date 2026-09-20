@@ -46,6 +46,6 @@ devcull clean
 
 ## The Plugin Ecosystem
 
-`devcull` doesn't just rely on native Go implementations. You can drop a custom plugin into `~/.config/devcull/plugins/` (or a local `./plugins` directory) written in **any language**. The engine communicates with plugins via standard output (JSON-RPC).
+`devcull` doesn't just rely on native Go implementations. You can drop a custom plugin into `~/.config/devcull/plugins/` written in **any language**. The engine communicates with plugins via standard output (JSON-RPC).
 
 Want to build a plugin to clear out Chrome's cache in TypeScript, or a Docker cleanup script in Bash? Check out [Contributing Guide](CONTRIBUTING.md).

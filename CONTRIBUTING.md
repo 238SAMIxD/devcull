@@ -26,7 +26,7 @@ If you want to add a highly popular, standard developer tool to the core engine,
 
 `devcull` supports language-agnostic plugins. The engine will execute your script as a subprocess and read the JSON output.
 
-To create a plugin, make a folder in `~/.config/devcull/plugins/` (or `./plugins` locally) containing two things:
+To create a plugin, make a folder in `~/.config/devcull/plugins/` containing two things:
 
 **1. `manifest.json**`
 

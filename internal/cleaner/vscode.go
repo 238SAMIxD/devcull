@@ -40,7 +40,7 @@ func (c *VSCodeCleaner) getPaths() []string {
 
 func (c *VSCodeCleaner) IsInstalled() bool {
 	for _, p := range c.getPaths() {
-		if _, err := os.Stat(filepath.Dir(p)); err == nil {
+		if info, err := os.Stat(filepath.Dir(p)); err == nil && info.IsDir() {
 			return true
 		}
 	}
