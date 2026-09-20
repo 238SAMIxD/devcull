@@ -172,9 +172,61 @@ func isSafeToDelete(targetPath string) bool {
 		return false
 	}
 
+	var blocklist []string
+
 	home, err := os.UserHomeDir()
-	if err == nil && abs == filepath.Clean(home) {
-		return false
+	if err == nil {
+		cleanHome := filepath.Clean(home)
+		blocklist = append(blocklist,
+			cleanHome,
+			filepath.Join(cleanHome, "Desktop"),
+			filepath.Join(cleanHome, "Documents"),
+			filepath.Join(cleanHome, "Downloads"),
+			filepath.Join(cleanHome, "Pictures"),
+			filepath.Join(cleanHome, "Music"),
+			filepath.Join(cleanHome, "Movies"),
+			filepath.Join(cleanHome, "Public"),
+		)
+	}
+
+	if os.PathSeparator == '/' {
+		blocklist = append(blocklist,
+			"/usr", "/usr/bin", "/usr/lib", "/usr/local", "/usr/local/bin",
+			"/bin", "/sbin", "/etc", "/var", "/tmp", "/Library", "/System",
+			"/Applications", "/Network", "/Users", "/Volumes",
+		)
+		if err == nil {
+			blocklist = append(blocklist, filepath.Join(home, "Library"))
+		}
+	} else if os.PathSeparator == '\\' {
+		sysRoot := os.Getenv("SystemRoot")
+		if sysRoot == "" {
+			sysRoot = `C:\Windows`
+		}
+		progFiles := os.Getenv("ProgramFiles")
+		if progFiles == "" {
+			progFiles = `C:\Program Files`
+		}
+		progFiles86 := os.Getenv("ProgramFiles(x86)")
+		if progFiles86 == "" {
+			progFiles86 = `C:\Program Files (x86)`
+		}
+		blocklist = append(blocklist,
+			sysRoot,
+			filepath.Join(sysRoot, "System32"),
+			progFiles,
+			progFiles86,
+			`C:\Users`,
+		)
+		if err == nil {
+			blocklist = append(blocklist, filepath.Join(home, "AppData"))
+		}
+	}
+
+	for _, blocked := range blocklist {
+		if blocked != "" && blocked != "." && strings.EqualFold(abs, filepath.Clean(blocked)) {
+			return false
+		}
 	}
 
 	pWithoutVol := abs[len(vol):]
