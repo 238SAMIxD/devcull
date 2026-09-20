@@ -1,4 +1,4 @@
-﻿version: 2
+version: 2
 project_name: devcull
 builds:
   - id: devcull
@@ -12,10 +12,10 @@ builds:
       - amd64
       - arm64
 archives:
-  - format: tar.gz
+  - formats: [tar.gz]
     format_overrides:
       - goos: windows
-        format: zip
+        formats: [zip]
 checksum:
   name_template: "checksums.txt"
 snapshot:
