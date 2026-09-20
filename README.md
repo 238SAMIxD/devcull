@@ -49,3 +49,16 @@ devcull clean
 `devcull` doesn't just rely on native Go implementations. You can drop a custom plugin into `~/.config/devcull/plugins/` written in **any language**. The engine communicates with plugins by passing commands as positional CLI arguments (e.g., `./plugin clean`) and expects a single JSON response on standard output.
 
 Want to build a plugin to clear out Chrome's cache in TypeScript, or a Docker cleanup script in Bash? Check out [Contributing Guide](CONTRIBUTING.md).
+
+## 🤝 A Note on AI & Contributions
+
+I'm currently exploring Go to build high-performance CLI tools, and `devcull` was largely architected and built with the help of AI coding assistants. 
+
+While the core engine has undergone strict human code reviews and security audits to ensure your paths, environments, and data remain completely safe, the codebase itself might not perfectly align with idiomatic Go standards just yet. 
+
+**I'm actively looking for experienced Go developers to help with:**
+* Reviewing and optimizing the concurrent engine.
+* Auditing the cross-platform filesystem logic.
+* Steering the architecture for the upcoming v1.0 release.
+
+If you're a Go veteran (or just someone who is passionate about reclaiming disk space from runaway caches), your PRs, code reviews, and architectural roasts are highly welcome! Check out the [Contributing Guide](CONTRIBUTING.md) to jump in.
