@@ -52,6 +52,10 @@ func (b *BunCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
 		return 0, err
 	}
 
+	if !isSafeToDelete(cachePath) {
+		return 0, nil
+	}
+
 	if _, err := os.Stat(cachePath); os.IsNotExist(err) {
 		return 0, nil
 	}
@@ -72,6 +76,9 @@ func (b *BunCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 	cachePath, err := b.getCachePath()
 	if err != nil {
 		return 0, err
+	}
+	if !isSafeToDelete(cachePath) {
+		return 0, nil
 	}
 	if cachePath != "" {
 		if err := os.RemoveAll(cachePath); err != nil && !os.IsNotExist(err) {

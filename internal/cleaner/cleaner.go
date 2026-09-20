@@ -230,7 +230,14 @@ func isSafeToDelete(targetPath string) bool {
 	}
 
 	for _, blocked := range blocklist {
-		if blocked != "" && blocked != "." && strings.EqualFold(abs, filepath.Clean(blocked)) {
+		if blocked == "" || blocked == "." {
+			continue
+		}
+		cleanBlocked := filepath.Clean(blocked)
+		if strings.EqualFold(abs, cleanBlocked) {
+			return false
+		}
+		if strings.HasPrefix(strings.ToLower(abs), strings.ToLower(cleanBlocked+string(filepath.Separator))) {
 			return false
 		}
 	}
@@ -271,7 +278,15 @@ func cleanDirs(ctx context.Context, paths []string, dryRun bool) (int64, error) 
 		if !isSafeToDelete(p) {
 			continue
 		}
-		if err := os.RemoveAll(p); err != nil && firstErr == nil {
+		abs, err := filepath.Abs(p)
+		if err != nil {
+			if firstErr == nil {
+				firstErr = err
+			}
+			continue
+		}
+		abs = filepath.Clean(abs)
+		if err := os.RemoveAll(abs); err != nil && firstErr == nil {
 			if !os.IsNotExist(err) {
 				firstErr = err
 			}

@@ -65,7 +65,10 @@ func (u *UnityCleaner) getCachePaths() []string {
 			)
 		}
 	default:
-		configDir, _ := os.UserConfigDir()
+		configDir, err := os.UserConfigDir()
+		if err != nil {
+			return nil
+		}
 		paths = []string{
 			filepath.Join(configDir, "unity3d", "cache", "packages"),
 			filepath.Join(home, ".local", "share", "unity3d", "Asset Store-5.x"),

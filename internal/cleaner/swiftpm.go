@@ -15,7 +15,10 @@ func (s *SwiftPMCleaner) Category() Category { return CategoryApple }
 
 func (s *SwiftPMCleaner) getCachePaths() []string {
 	if runtime.GOOS != "darwin" {
-		home, _ := os.UserHomeDir()
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return nil
+		}
 		return []string{filepath.Join(home, ".swiftpm", "cache")}
 	}
 
