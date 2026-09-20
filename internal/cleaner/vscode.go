@@ -1,6 +1,8 @@
 package cleaner
 
 import (
+	"context"
+
 	"os"
 	"path/filepath"
 	"runtime"
@@ -38,7 +40,7 @@ func (c *VSCodeCleaner) getPaths() []string {
 	}
 }
 
-func (c *VSCodeCleaner) IsInstalled() bool {
+func (c *VSCodeCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range c.getPaths() {
 		if info, err := os.Stat(filepath.Dir(p)); err == nil && info.IsDir() {
 			return true
@@ -47,10 +49,10 @@ func (c *VSCodeCleaner) IsInstalled() bool {
 	return false
 }
 
-func (c *VSCodeCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(c.getPaths())
+func (c *VSCodeCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
+	return dirsSize(ctx, c.getPaths())
 }
 
-func (c *VSCodeCleaner) Clean(dryRun bool) (int64, error) {
-	return cleanDirs(c.getPaths(), dryRun)
+func (c *VSCodeCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	return cleanDirs(ctx, c.getPaths(), dryRun)
 }

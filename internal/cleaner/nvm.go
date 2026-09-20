@@ -1,6 +1,8 @@
 package cleaner
 
 import (
+	"context"
+
 	"os"
 	"path/filepath"
 )
@@ -15,7 +17,7 @@ func (n *NvmCleaner) Category() Category {
 	return CategoryNode
 }
 
-func (n *NvmCleaner) IsInstalled() bool {
+func (n *NvmCleaner) IsInstalled(ctx context.Context) bool {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return false
@@ -34,7 +36,7 @@ func (n *NvmCleaner) getCachePath() (string, error) {
 	return filepath.Join(home, ".nvm", ".cache"), nil
 }
 
-func (n *NvmCleaner) EstimateReclaimable() (int64, error) {
+func (n *NvmCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
 	cachePath, err := n.getCachePath()
 	if err != nil {
 		return 0, err
@@ -44,11 +46,11 @@ func (n *NvmCleaner) EstimateReclaimable() (int64, error) {
 		return 0, nil
 	}
 
-	return dirSize(cachePath)
+	return dirSize(ctx, cachePath)
 }
 
-func (n *NvmCleaner) Clean(dryRun bool) (int64, error) {
-	before, err := n.EstimateReclaimable()
+func (n *NvmCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	before, err := n.EstimateReclaimable(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -67,7 +69,7 @@ func (n *NvmCleaner) Clean(dryRun bool) (int64, error) {
 		}
 	}
 
-	after, err := dirSize(cachePath)
+	after, err := dirSize(ctx, cachePath)
 	if err != nil {
 		return 0, err
 	}

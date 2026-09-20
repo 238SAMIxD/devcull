@@ -1,6 +1,8 @@
 package cleaner
 
 import (
+	"context"
+
 	"os"
 	"path/filepath"
 	"runtime"
@@ -31,7 +33,7 @@ func (c *JetBrainsCleaner) getPaths() []string {
 	}
 }
 
-func (c *JetBrainsCleaner) IsInstalled() bool {
+func (c *JetBrainsCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range c.getPaths() {
 		if info, err := os.Stat(p); err == nil && info.IsDir() {
 			return true
@@ -40,10 +42,10 @@ func (c *JetBrainsCleaner) IsInstalled() bool {
 	return false
 }
 
-func (c *JetBrainsCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(c.getPaths())
+func (c *JetBrainsCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
+	return dirsSize(ctx, c.getPaths())
 }
 
-func (c *JetBrainsCleaner) Clean(dryRun bool) (int64, error) {
-	return cleanDirs(c.getPaths(), dryRun)
+func (c *JetBrainsCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	return cleanDirs(ctx, c.getPaths(), dryRun)
 }

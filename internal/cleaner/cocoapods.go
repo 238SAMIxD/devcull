@@ -1,6 +1,8 @@
 package cleaner
 
 import (
+	"context"
+
 	"os"
 	"path/filepath"
 	"runtime"
@@ -24,7 +26,7 @@ func (c *CocoaPodsCleaner) getCachePaths() []string {
 	return nil
 }
 
-func (c *CocoaPodsCleaner) IsInstalled() bool {
+func (c *CocoaPodsCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range c.getCachePaths() {
 		if info, err := os.Stat(p); err == nil && info.IsDir() {
 			return true
@@ -33,10 +35,10 @@ func (c *CocoaPodsCleaner) IsInstalled() bool {
 	return false
 }
 
-func (c *CocoaPodsCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(c.getCachePaths())
+func (c *CocoaPodsCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
+	return dirsSize(ctx, c.getCachePaths())
 }
 
-func (c *CocoaPodsCleaner) Clean(dryRun bool) (int64, error) {
-	return cleanDirs(c.getCachePaths(), dryRun)
+func (c *CocoaPodsCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	return cleanDirs(ctx, c.getCachePaths(), dryRun)
 }

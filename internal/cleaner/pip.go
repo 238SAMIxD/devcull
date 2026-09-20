@@ -36,12 +36,12 @@ func (p *PipCleaner) getCmd() string {
 	return ""
 }
 
-func (p *PipCleaner) IsInstalled() bool {
+func (p *PipCleaner) IsInstalled(ctx context.Context) bool {
 	cmd := p.getCmd()
 	if cmd == "" {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	if err := exec.CommandContext(ctx, cmd, "--version").Run(); err != nil {
 		return false
@@ -63,16 +63,16 @@ func (p *PipCleaner) getCachePath() (string, error) {
 	return pathStr, nil
 }
 
-func (p *PipCleaner) EstimateReclaimable() (int64, error) {
+func (p *PipCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
 	cachePath, err := p.getCachePath()
 	if err != nil {
 		return 0, err
 	}
-	return dirSize(cachePath)
+	return dirSize(ctx, cachePath)
 }
 
-func (p *PipCleaner) Clean(dryRun bool) (int64, error) {
-	before, err := p.EstimateReclaimable()
+func (p *PipCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	before, err := p.EstimateReclaimable(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -81,7 +81,7 @@ func (p *PipCleaner) Clean(dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	if err := exec.CommandContext(ctx, p.getCmd(), "cache", "purge").Run(); err != nil {
 		return 0, err
@@ -91,7 +91,7 @@ func (p *PipCleaner) Clean(dryRun bool) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	after, err := dirSize(cachePath)
+	after, err := dirSize(ctx, cachePath)
 	if err != nil && after == 0 {
 		after = before
 	}

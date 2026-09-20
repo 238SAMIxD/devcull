@@ -1,6 +1,7 @@
 package cleaner
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -44,9 +45,9 @@ func AllCategories() []Category {
 type Cleaner interface {
 	Name() string
 	Category() Category
-	IsInstalled() bool
-	EstimateReclaimable() (int64, error)
-	Clean(dryRun bool) (int64, error)
+	IsInstalled(ctx context.Context) bool
+	EstimateReclaimable(ctx context.Context) (int64, error)
+	Clean(ctx context.Context, dryRun bool) (int64, error)
 }
 
 func Native() []Cleaner {
@@ -113,12 +114,17 @@ func Native() []Cleaner {
 	}
 }
 
-func dirSize(path string) (int64, error) {
+func dirSize(ctx context.Context, path string) (int64, error) {
 	if path == "" {
 		return 0, fmt.Errorf("empty path provided to dirSize")
 	}
 	var size int64
 	err := filepath.WalkDir(path, func(_ string, d os.DirEntry, err error) error {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
 		if err != nil {
 			if os.IsNotExist(err) {
 				return nil
@@ -143,11 +149,11 @@ func dirSize(path string) (int64, error) {
 	return size, err
 }
 
-func dirsSize(paths []string) (int64, error) {
+func dirsSize(ctx context.Context, paths []string) (int64, error) {
 	var total int64
 	var firstErr error
 	for _, p := range paths {
-		size, err := dirSize(p)
+		size, err := dirSize(ctx, p)
 		if err != nil && firstErr == nil {
 			firstErr = err
 		}
@@ -246,8 +252,8 @@ func isSafeToDelete(targetPath string) bool {
 	return true
 }
 
-func cleanDirs(paths []string, dryRun bool) (int64, error) {
-	before, err := dirsSize(paths)
+func cleanDirs(ctx context.Context, paths []string, dryRun bool) (int64, error) {
+	before, err := dirsSize(ctx, paths)
 	if err != nil {
 		return 0, err
 	}
@@ -257,6 +263,11 @@ func cleanDirs(paths []string, dryRun bool) (int64, error) {
 
 	var firstErr error
 	for _, p := range paths {
+		select {
+		case <-ctx.Done():
+			return 0, ctx.Err()
+		default:
+		}
 		if !isSafeToDelete(p) {
 			continue
 		}
@@ -267,7 +278,7 @@ func cleanDirs(paths []string, dryRun bool) (int64, error) {
 		}
 	}
 
-	after, err := dirsSize(paths)
+	after, err := dirsSize(ctx, paths)
 	if err != nil {
 		if firstErr == nil {
 			firstErr = err

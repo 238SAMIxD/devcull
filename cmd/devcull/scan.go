@@ -1,6 +1,9 @@
 package main
 
 import (
+	"context"
+	"os/signal"
+
 	"fmt"
 	"os"
 
@@ -37,7 +40,10 @@ var scanCmd = &cobra.Command{
 
 		fmt.Println("🔍 Scanning developer caches...")
 
-		results := engine.Scan(activeCleaners)
+		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+		defer stop()
+
+		results := engine.Scan(ctx, activeCleaners)
 
 		grouped := make(map[cleaner.Category][]engine.ScanResult)
 		var totalReclaimable int64

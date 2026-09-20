@@ -1,6 +1,9 @@
 package main
 
 import (
+	"context"
+	"os/signal"
+
 	"fmt"
 	"os"
 
@@ -38,7 +41,10 @@ var cleanCmd = &cobra.Command{
 			activeCleaners = allCleaners
 		}
 
-		results := engine.Run(activeCleaners, dryRun)
+		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+		defer stop()
+
+		results := engine.Run(ctx, activeCleaners, dryRun)
 
 		var sessionTotal int64
 		hasArgs := len(args) > 0

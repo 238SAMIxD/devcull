@@ -1,6 +1,8 @@
 package cleaner
 
 import (
+	"context"
+
 	"os"
 	"path/filepath"
 	"runtime"
@@ -75,7 +77,7 @@ func (u *UnityCleaner) getCachePaths() []string {
 	return paths
 }
 
-func (u *UnityCleaner) IsInstalled() bool {
+func (u *UnityCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range u.getCachePaths() {
 		if info, err := os.Stat(p); err == nil && info.IsDir() {
 			return true
@@ -84,10 +86,10 @@ func (u *UnityCleaner) IsInstalled() bool {
 	return false
 }
 
-func (u *UnityCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(u.getCachePaths())
+func (u *UnityCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
+	return dirsSize(ctx, u.getCachePaths())
 }
 
-func (u *UnityCleaner) Clean(dryRun bool) (int64, error) {
-	return cleanDirs(u.getCachePaths(), dryRun)
+func (u *UnityCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	return cleanDirs(ctx, u.getCachePaths(), dryRun)
 }

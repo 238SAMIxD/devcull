@@ -19,11 +19,11 @@ func (g *GoCleaner) Category() Category {
 	return CategoryGo
 }
 
-func (g *GoCleaner) IsInstalled() bool {
+func (g *GoCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("go"); err != nil {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "go", "version").Run(); err != nil {
 		return false
@@ -53,16 +53,16 @@ func (g *GoCleaner) getCachePaths() ([]string, error) {
 	return paths, nil
 }
 
-func (g *GoCleaner) EstimateReclaimable() (int64, error) {
+func (g *GoCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
 	paths, err := g.getCachePaths()
 	if err != nil {
 		return 0, err
 	}
-	return dirsSize(paths)
+	return dirsSize(ctx, paths)
 }
 
-func (g *GoCleaner) Clean(dryRun bool) (int64, error) {
-	before, err := g.EstimateReclaimable()
+func (g *GoCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	before, err := g.EstimateReclaimable(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -71,7 +71,7 @@ func (g *GoCleaner) Clean(dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	ctx2, cancel2 := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx2, cancel2 := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel2()
 	if err := exec.CommandContext(ctx2, "go", "clean", "-cache", "-modcache").Run(); err != nil {
 		return 0, err
@@ -81,7 +81,7 @@ func (g *GoCleaner) Clean(dryRun bool) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	after, err := dirsSize(paths)
+	after, err := dirsSize(ctx, paths)
 	if err != nil {
 		return 0, err
 	}

@@ -1,6 +1,8 @@
 package cleaner
 
 import (
+	"context"
+
 	"os"
 	"path/filepath"
 )
@@ -23,7 +25,7 @@ func (c *EclipseCleaner) getPaths() []string {
 	}
 }
 
-func (c *EclipseCleaner) IsInstalled() bool {
+func (c *EclipseCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range c.getPaths() {
 		if info, err := os.Stat(p); err == nil && info.IsDir() {
 			return true
@@ -32,10 +34,10 @@ func (c *EclipseCleaner) IsInstalled() bool {
 	return false
 }
 
-func (c *EclipseCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(c.getPaths())
+func (c *EclipseCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
+	return dirsSize(ctx, c.getPaths())
 }
 
-func (c *EclipseCleaner) Clean(dryRun bool) (int64, error) {
-	return cleanDirs(c.getPaths(), dryRun)
+func (c *EclipseCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	return cleanDirs(ctx, c.getPaths(), dryRun)
 }

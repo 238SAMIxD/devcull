@@ -26,12 +26,12 @@ type SubprocessCleaner struct {
 func (p *SubprocessCleaner) Name() string               { return p.manifest.Name }
 func (p *SubprocessCleaner) Category() cleaner.Category { return p.manifest.Category }
 
-func (p *SubprocessCleaner) IsInstalled() bool {
+func (p *SubprocessCleaner) IsInstalled(ctx context.Context) bool {
 	if len(p.manifest.Entrypoint) == 0 {
 		return false
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	cmdArgs := append(p.manifest.Entrypoint[1:], "installed")
@@ -52,8 +52,8 @@ func (p *SubprocessCleaner) IsInstalled() bool {
 	return res.Installed
 }
 
-func (p *SubprocessCleaner) EstimateReclaimable() (int64, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+func (p *SubprocessCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	cmdArgs := append(p.manifest.Entrypoint[1:], "estimate")
@@ -79,13 +79,13 @@ func (p *SubprocessCleaner) EstimateReclaimable() (int64, error) {
 	return res.ReclaimableBytes, nil
 }
 
-func (p *SubprocessCleaner) Clean(dryRun bool) (int64, error) {
+func (p *SubprocessCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 	args := append(p.manifest.Entrypoint[1:], "clean")
 	if dryRun {
 		args = append(args, "--dry-run")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, p.manifest.Entrypoint[0], args...)

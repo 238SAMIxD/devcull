@@ -1,6 +1,9 @@
 package cleaner
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 type mockCleaner struct {
 	name     string
@@ -9,9 +12,9 @@ type mockCleaner struct {
 
 func (m *mockCleaner) Name() string                        { return m.name }
 func (m *mockCleaner) Category() Category                  { return m.category }
-func (m *mockCleaner) IsInstalled() bool                   { return true }
-func (m *mockCleaner) EstimateReclaimable() (int64, error) { return 0, nil }
-func (m *mockCleaner) Clean(dryRun bool) (int64, error)    { return 0, nil }
+func (m *mockCleaner) IsInstalled(ctx context.Context) bool                   { return true }
+func (m *mockCleaner) EstimateReclaimable(ctx context.Context) (int64, error) { return 0, nil }
+func (m *mockCleaner) Clean(ctx context.Context, dryRun bool) (int64, error)    { return 0, nil }
 
 func TestMatchesArg(t *testing.T) {
 	tests := []struct {

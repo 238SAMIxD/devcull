@@ -1,6 +1,8 @@
 package cleaner
 
 import (
+	"context"
+
 	"os"
 	"path/filepath"
 )
@@ -26,7 +28,7 @@ func (c *CcacheCleaner) getCachePaths() []string {
 	return paths
 }
 
-func (c *CcacheCleaner) IsInstalled() bool {
+func (c *CcacheCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range c.getCachePaths() {
 		if info, err := os.Stat(p); err == nil && info.IsDir() {
 			return true
@@ -35,10 +37,10 @@ func (c *CcacheCleaner) IsInstalled() bool {
 	return false
 }
 
-func (c *CcacheCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(c.getCachePaths())
+func (c *CcacheCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
+	return dirsSize(ctx, c.getCachePaths())
 }
 
-func (c *CcacheCleaner) Clean(dryRun bool) (int64, error) {
-	return cleanDirs(c.getCachePaths(), dryRun)
+func (c *CcacheCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	return cleanDirs(ctx, c.getCachePaths(), dryRun)
 }

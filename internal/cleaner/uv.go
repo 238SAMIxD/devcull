@@ -19,11 +19,11 @@ func (u *UvCleaner) Category() Category {
 	return CategoryPython
 }
 
-func (u *UvCleaner) IsInstalled() bool {
+func (u *UvCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("uv"); err != nil {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "uv", "--version").Run(); err != nil {
 		return false
@@ -45,16 +45,16 @@ func (u *UvCleaner) getCachePath() (string, error) {
 	return pathStr, nil
 }
 
-func (u *UvCleaner) EstimateReclaimable() (int64, error) {
+func (u *UvCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
 	cachePath, err := u.getCachePath()
 	if err != nil {
 		return 0, err
 	}
-	return dirSize(cachePath)
+	return dirSize(ctx, cachePath)
 }
 
-func (u *UvCleaner) Clean(dryRun bool) (int64, error) {
-	before, err := u.EstimateReclaimable()
+func (u *UvCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	before, err := u.EstimateReclaimable(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -63,7 +63,7 @@ func (u *UvCleaner) Clean(dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "uv", "cache", "clean").Run(); err != nil {
 		return 0, err
@@ -73,7 +73,7 @@ func (u *UvCleaner) Clean(dryRun bool) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	after, err := dirSize(cachePath)
+	after, err := dirSize(ctx, cachePath)
 	if err != nil && after == 0 {
 		after = before
 	}

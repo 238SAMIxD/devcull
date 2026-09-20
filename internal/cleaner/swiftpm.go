@@ -1,6 +1,8 @@
 package cleaner
 
 import (
+	"context"
+
 	"os"
 	"path/filepath"
 	"runtime"
@@ -27,7 +29,7 @@ func (s *SwiftPMCleaner) getCachePaths() []string {
 	}
 }
 
-func (s *SwiftPMCleaner) IsInstalled() bool {
+func (s *SwiftPMCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range s.getCachePaths() {
 		if info, err := os.Stat(p); err == nil && info.IsDir() {
 			return true
@@ -36,10 +38,10 @@ func (s *SwiftPMCleaner) IsInstalled() bool {
 	return false
 }
 
-func (s *SwiftPMCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(s.getCachePaths())
+func (s *SwiftPMCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
+	return dirsSize(ctx, s.getCachePaths())
 }
 
-func (s *SwiftPMCleaner) Clean(dryRun bool) (int64, error) {
-	return cleanDirs(s.getCachePaths(), dryRun)
+func (s *SwiftPMCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	return cleanDirs(ctx, s.getCachePaths(), dryRun)
 }

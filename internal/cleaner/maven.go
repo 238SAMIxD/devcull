@@ -1,6 +1,8 @@
 package cleaner
 
 import (
+	"context"
+
 	"os"
 	"path/filepath"
 )
@@ -18,7 +20,7 @@ func (m *MavenCleaner) getCachePath() (string, error) {
 	return filepath.Join(home, ".m2", "repository"), nil
 }
 
-func (m *MavenCleaner) IsInstalled() bool {
+func (m *MavenCleaner) IsInstalled(ctx context.Context) bool {
 	p, err := m.getCachePath()
 	if err != nil {
 		return false
@@ -27,18 +29,18 @@ func (m *MavenCleaner) IsInstalled() bool {
 	return err == nil && info.IsDir()
 }
 
-func (m *MavenCleaner) EstimateReclaimable() (int64, error) {
+func (m *MavenCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
 	p, err := m.getCachePath()
 	if err != nil {
 		return 0, err
 	}
-	return dirSize(p)
+	return dirSize(ctx, p)
 }
 
-func (m *MavenCleaner) Clean(dryRun bool) (int64, error) {
+func (m *MavenCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 	p, err := m.getCachePath()
 	if err != nil {
 		return 0, err
 	}
-	return cleanDirs([]string{p}, dryRun)
+	return cleanDirs(ctx, []string{p}, dryRun)
 }

@@ -20,11 +20,11 @@ func (b *BunCleaner) Category() Category {
 	return CategoryNode
 }
 
-func (b *BunCleaner) IsInstalled() bool {
+func (b *BunCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("bun"); err != nil {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "bun", "--version").Run(); err != nil {
 		return false
@@ -46,7 +46,7 @@ func (b *BunCleaner) getCachePath() (string, error) {
 	return p, nil
 }
 
-func (b *BunCleaner) EstimateReclaimable() (int64, error) {
+func (b *BunCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
 	cachePath, err := b.getCachePath()
 	if err != nil {
 		return 0, err
@@ -56,11 +56,11 @@ func (b *BunCleaner) EstimateReclaimable() (int64, error) {
 		return 0, nil
 	}
 
-	return dirSize(cachePath)
+	return dirSize(ctx, cachePath)
 }
 
-func (b *BunCleaner) Clean(dryRun bool) (int64, error) {
-	before, err := b.EstimateReclaimable()
+func (b *BunCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	before, err := b.EstimateReclaimable(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -79,7 +79,7 @@ func (b *BunCleaner) Clean(dryRun bool) (int64, error) {
 		}
 	}
 
-	after, err := dirSize(cachePath)
+	after, err := dirSize(ctx, cachePath)
 	if err != nil {
 		return 0, err
 	}

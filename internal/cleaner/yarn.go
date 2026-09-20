@@ -19,11 +19,11 @@ func (y *YarnCleaner) Category() Category {
 	return CategoryNode
 }
 
-func (y *YarnCleaner) IsInstalled() bool {
+func (y *YarnCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("yarn"); err != nil {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "yarn", "--version").Run(); err != nil {
 		return false
@@ -45,16 +45,16 @@ func (y *YarnCleaner) getCachePath() (string, error) {
 	return p, nil
 }
 
-func (y *YarnCleaner) EstimateReclaimable() (int64, error) {
+func (y *YarnCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
 	cachePath, err := y.getCachePath()
 	if err != nil {
 		return 0, err
 	}
-	return dirSize(cachePath)
+	return dirSize(ctx, cachePath)
 }
 
-func (y *YarnCleaner) Clean(dryRun bool) (int64, error) {
-	before, err := y.EstimateReclaimable()
+func (y *YarnCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	before, err := y.EstimateReclaimable(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -63,7 +63,7 @@ func (y *YarnCleaner) Clean(dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "yarn", "cache", "clean").Run(); err != nil {
 		return 0, err
@@ -73,7 +73,7 @@ func (y *YarnCleaner) Clean(dryRun bool) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	after, err := dirSize(cachePath)
+	after, err := dirSize(ctx, cachePath)
 	if err != nil && after == 0 {
 		after = before
 	}

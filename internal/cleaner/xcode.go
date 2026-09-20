@@ -1,6 +1,8 @@
 package cleaner
 
 import (
+	"context"
+
 	"os"
 	"path/filepath"
 	"runtime"
@@ -27,7 +29,7 @@ func (x *XcodeCleaner) getCachePaths() []string {
 	}
 }
 
-func (x *XcodeCleaner) IsInstalled() bool {
+func (x *XcodeCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range x.getCachePaths() {
 		if info, err := os.Stat(p); err == nil && info.IsDir() {
 			return true
@@ -36,10 +38,10 @@ func (x *XcodeCleaner) IsInstalled() bool {
 	return false
 }
 
-func (x *XcodeCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(x.getCachePaths())
+func (x *XcodeCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
+	return dirsSize(ctx, x.getCachePaths())
 }
 
-func (x *XcodeCleaner) Clean(dryRun bool) (int64, error) {
-	return cleanDirs(x.getCachePaths(), dryRun)
+func (x *XcodeCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	return cleanDirs(ctx, x.getCachePaths(), dryRun)
 }

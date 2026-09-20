@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"context"
+	"runtime"
 	"sync"
 
 	"github.com/238SAMIxD/devcull/internal/cleaner"
@@ -22,16 +24,31 @@ type ScanResult struct {
 	Err         error
 }
 
-func Run(cleaners []cleaner.Cleaner, dryRun bool) []Result {
+func Run(ctx context.Context, cleaners []cleaner.Cleaner, dryRun bool) []Result {
 	var wg sync.WaitGroup
 	resultsCh := make(chan Result, len(cleaners))
+	sem := make(chan struct{}, runtime.NumCPU())
 
 	for _, c := range cleaners {
 		wg.Add(1)
 		go func(clr cleaner.Cleaner) {
 			defer wg.Done()
 
-			if !clr.IsInstalled() {
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			select {
+			case <-ctx.Done():
+				resultsCh <- Result{
+					CleanerName: clr.Name(),
+					Category:    clr.Category(),
+					Err:         ctx.Err(),
+				}
+				return
+			default:
+			}
+
+			if !clr.IsInstalled(ctx) {
 				resultsCh <- Result{
 					CleanerName: clr.Name(),
 					Category:    clr.Category(),
@@ -40,7 +57,7 @@ func Run(cleaners []cleaner.Cleaner, dryRun bool) []Result {
 				return
 			}
 
-			reclaimed, err := clr.Clean(dryRun)
+			reclaimed, err := clr.Clean(ctx, dryRun)
 			resultsCh <- Result{
 				CleanerName: clr.Name(),
 				Category:    clr.Category(),
@@ -60,16 +77,31 @@ func Run(cleaners []cleaner.Cleaner, dryRun bool) []Result {
 	return results
 }
 
-func Scan(cleaners []cleaner.Cleaner) []ScanResult {
+func Scan(ctx context.Context, cleaners []cleaner.Cleaner) []ScanResult {
 	var wg sync.WaitGroup
 	resultsCh := make(chan ScanResult, len(cleaners))
+	sem := make(chan struct{}, runtime.NumCPU())
 
 	for _, c := range cleaners {
 		wg.Add(1)
 		go func(clr cleaner.Cleaner) {
 			defer wg.Done()
 
-			if !clr.IsInstalled() {
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			select {
+			case <-ctx.Done():
+				resultsCh <- ScanResult{
+					CleanerName: clr.Name(),
+					Category:    clr.Category(),
+					Err:         ctx.Err(),
+				}
+				return
+			default:
+			}
+
+			if !clr.IsInstalled(ctx) {
 				resultsCh <- ScanResult{
 					CleanerName: clr.Name(),
 					Category:    clr.Category(),
@@ -78,7 +110,7 @@ func Scan(cleaners []cleaner.Cleaner) []ScanResult {
 				return
 			}
 
-			reclaimable, err := clr.EstimateReclaimable()
+			reclaimable, err := clr.EstimateReclaimable(ctx)
 			resultsCh <- ScanResult{
 				CleanerName: clr.Name(),
 				Category:    clr.Category(),

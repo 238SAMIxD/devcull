@@ -1,6 +1,8 @@
 package plugin
 
 import (
+	"context"
+
 	"os"
 	"path/filepath"
 	"testing"
@@ -30,11 +32,11 @@ esac
 		},
 	}
 
-	if !p.IsInstalled() {
+	if !p.IsInstalled(context.Background()) {
 		t.Error("Expected IsInstalled to be true")
 	}
 
-	size, err := p.EstimateReclaimable()
+	size, err := p.EstimateReclaimable(context.Background())
 	if err != nil {
 		t.Errorf("Unexpected error from estimate: %v", err)
 	}
@@ -42,7 +44,7 @@ esac
 		t.Errorf("Expected estimate size 1024, got %d", size)
 	}
 
-	reclaimed, err := p.Clean(false)
+	reclaimed, err := p.Clean(context.Background(), false)
 	if err != nil {
 		t.Errorf("Unexpected error from clean: %v", err)
 	}

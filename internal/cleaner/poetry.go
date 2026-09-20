@@ -19,11 +19,11 @@ func (p *PoetryCleaner) Category() Category {
 	return CategoryPython
 }
 
-func (p *PoetryCleaner) IsInstalled() bool {
+func (p *PoetryCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("poetry"); err != nil {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "poetry", "--version").Run(); err != nil {
 		return false
@@ -48,15 +48,15 @@ func (p *PoetryCleaner) getCachePaths() []string {
 	}
 }
 
-func (p *PoetryCleaner) EstimateReclaimable() (int64, error) {
+func (p *PoetryCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
 	paths := p.getCachePaths()
 	if len(paths) == 0 {
 		return 0, nil
 	}
-	return dirsSize(paths)
+	return dirsSize(ctx, paths)
 }
 
-func (p *PoetryCleaner) Clean(dryRun bool) (int64, error) {
+func (p *PoetryCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 	paths := p.getCachePaths()
-	return cleanDirs(paths, dryRun)
+	return cleanDirs(ctx, paths, dryRun)
 }

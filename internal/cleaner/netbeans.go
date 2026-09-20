@@ -1,6 +1,8 @@
 package cleaner
 
 import (
+	"context"
+
 	"os"
 	"path/filepath"
 	"runtime"
@@ -31,7 +33,7 @@ func (c *NetBeansCleaner) getPaths() []string {
 	}
 }
 
-func (c *NetBeansCleaner) IsInstalled() bool {
+func (c *NetBeansCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range c.getPaths() {
 		if info, err := os.Stat(p); err == nil && info.IsDir() {
 			return true
@@ -39,10 +41,10 @@ func (c *NetBeansCleaner) IsInstalled() bool {
 	}
 	return false
 }
-func (c *NetBeansCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(c.getPaths())
+func (c *NetBeansCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
+	return dirsSize(ctx, c.getPaths())
 }
 
-func (c *NetBeansCleaner) Clean(dryRun bool) (int64, error) {
-	return cleanDirs(c.getPaths(), dryRun)
+func (c *NetBeansCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	return cleanDirs(ctx, c.getPaths(), dryRun)
 }

@@ -1,6 +1,8 @@
 package cleaner
 
 import (
+	"context"
+
 	"os"
 	"path/filepath"
 	"runtime"
@@ -27,7 +29,7 @@ func (p *DartCleaner) getCachePaths() []string {
 	return []string{filepath.Join(home, ".pub-cache")}
 }
 
-func (p *DartCleaner) IsInstalled() bool {
+func (p *DartCleaner) IsInstalled(ctx context.Context) bool {
 	for _, path := range p.getCachePaths() {
 		if info, err := os.Stat(path); err == nil && info.IsDir() {
 			return true
@@ -36,10 +38,10 @@ func (p *DartCleaner) IsInstalled() bool {
 	return false
 }
 
-func (p *DartCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(p.getCachePaths())
+func (p *DartCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
+	return dirsSize(ctx, p.getCachePaths())
 }
 
-func (p *DartCleaner) Clean(dryRun bool) (int64, error) {
-	return cleanDirs(p.getCachePaths(), dryRun)
+func (p *DartCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	return cleanDirs(ctx, p.getCachePaths(), dryRun)
 }

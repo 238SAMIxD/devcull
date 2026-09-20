@@ -1,6 +1,8 @@
 package cleaner
 
 import (
+	"context"
+
 	"os"
 	"path/filepath"
 )
@@ -21,7 +23,7 @@ func (a *AndroidCleaner) getCachePaths() []string {
 	}
 }
 
-func (a *AndroidCleaner) IsInstalled() bool {
+func (a *AndroidCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range a.getCachePaths() {
 		if info, err := os.Stat(p); err == nil && info.IsDir() {
 			return true
@@ -30,10 +32,10 @@ func (a *AndroidCleaner) IsInstalled() bool {
 	return false
 }
 
-func (a *AndroidCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(a.getCachePaths())
+func (a *AndroidCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
+	return dirsSize(ctx, a.getCachePaths())
 }
 
-func (a *AndroidCleaner) Clean(dryRun bool) (int64, error) {
-	return cleanDirs(a.getCachePaths(), dryRun)
+func (a *AndroidCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	return cleanDirs(ctx, a.getCachePaths(), dryRun)
 }

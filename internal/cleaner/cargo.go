@@ -20,11 +20,11 @@ func (c *CargoCleaner) Category() Category {
 	return CategoryRust
 }
 
-func (c *CargoCleaner) IsInstalled() bool {
+func (c *CargoCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("cargo"); err != nil {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "cargo", "--version").Run(); err != nil {
 		return false
@@ -59,18 +59,18 @@ func (c *CargoCleaner) getCachePaths() ([]string, error) {
 	}, nil
 }
 
-func (c *CargoCleaner) EstimateReclaimable() (int64, error) {
+func (c *CargoCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
 	paths, err := c.getCachePaths()
 	if err != nil {
 		return 0, err
 	}
-	return dirsSize(paths)
+	return dirsSize(ctx, paths)
 }
 
-func (c *CargoCleaner) Clean(dryRun bool) (int64, error) {
+func (c *CargoCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 	paths, err := c.getCachePaths()
 	if err != nil {
 		return 0, err
 	}
-	return cleanDirs(paths, dryRun)
+	return cleanDirs(ctx, paths, dryRun)
 }

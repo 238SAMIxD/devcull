@@ -19,11 +19,11 @@ func (d *DenoCleaner) Category() Category {
 	return CategoryNode
 }
 
-func (d *DenoCleaner) IsInstalled() bool {
+func (d *DenoCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("deno"); err != nil {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "deno", "--version").Run(); err != nil {
 		return false
@@ -75,10 +75,10 @@ func (d *DenoCleaner) getCachePaths() []string {
 	}
 }
 
-func (d *DenoCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(d.getCachePaths())
+func (d *DenoCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
+	return dirsSize(ctx, d.getCachePaths())
 }
 
-func (d *DenoCleaner) Clean(dryRun bool) (int64, error) {
-	return cleanDirs(d.getCachePaths(), dryRun)
+func (d *DenoCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	return cleanDirs(ctx, d.getCachePaths(), dryRun)
 }

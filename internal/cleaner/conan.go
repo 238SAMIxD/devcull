@@ -1,6 +1,8 @@
 package cleaner
 
 import (
+	"context"
+
 	"os"
 	"path/filepath"
 )
@@ -21,7 +23,7 @@ func (c *ConanCleaner) getCachePaths() []string {
 	}
 }
 
-func (c *ConanCleaner) IsInstalled() bool {
+func (c *ConanCleaner) IsInstalled(ctx context.Context) bool {
 	for _, p := range c.getCachePaths() {
 		if info, err := os.Stat(p); err == nil && info.IsDir() {
 			return true
@@ -30,10 +32,10 @@ func (c *ConanCleaner) IsInstalled() bool {
 	return false
 }
 
-func (c *ConanCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(c.getCachePaths())
+func (c *ConanCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
+	return dirsSize(ctx, c.getCachePaths())
 }
 
-func (c *ConanCleaner) Clean(dryRun bool) (int64, error) {
-	return cleanDirs(c.getCachePaths(), dryRun)
+func (c *ConanCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	return cleanDirs(ctx, c.getCachePaths(), dryRun)
 }

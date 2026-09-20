@@ -19,11 +19,11 @@ func (b *BrewCleaner) Category() Category {
 	return CategorySystem
 }
 
-func (b *BrewCleaner) IsInstalled() bool {
+func (b *BrewCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("brew"); err != nil {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "brew", "--version").Run(); err != nil {
 		return false
@@ -45,16 +45,16 @@ func (b *BrewCleaner) getCachePath() (string, error) {
 	return p, nil
 }
 
-func (b *BrewCleaner) EstimateReclaimable() (int64, error) {
+func (b *BrewCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
 	cachePath, err := b.getCachePath()
 	if err != nil {
 		return 0, err
 	}
-	return dirSize(cachePath)
+	return dirSize(ctx, cachePath)
 }
 
-func (b *BrewCleaner) Clean(dryRun bool) (int64, error) {
-	before, err := b.EstimateReclaimable()
+func (b *BrewCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	before, err := b.EstimateReclaimable(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -63,7 +63,7 @@ func (b *BrewCleaner) Clean(dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "brew", "cleanup").Run(); err != nil {
 		return 0, err
@@ -73,7 +73,7 @@ func (b *BrewCleaner) Clean(dryRun bool) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	after, err := dirSize(cachePath)
+	after, err := dirSize(ctx, cachePath)
 	if err != nil && after == 0 {
 		after = before
 	}

@@ -20,11 +20,11 @@ func (d *DockerCleaner) Category() Category {
 	return CategorySystem
 }
 
-func (d *DockerCleaner) IsInstalled() bool {
+func (d *DockerCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("docker"); err != nil {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "docker", "info").Run(); err != nil {
 		return false
@@ -32,8 +32,8 @@ func (d *DockerCleaner) IsInstalled() bool {
 	return true
 }
 
-func (d *DockerCleaner) EstimateReclaimable() (int64, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+func (d *DockerCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "docker", "system", "df", "--format", "{{.Type}}|{{.Reclaimable}}").Output()
 	if err != nil {
@@ -55,8 +55,8 @@ func (d *DockerCleaner) EstimateReclaimable() (int64, error) {
 	return totalEstimate, nil
 }
 
-func (d *DockerCleaner) Clean(dryRun bool) (int64, error) {
-	reclaimable, err := d.EstimateReclaimable()
+func (d *DockerCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	reclaimable, err := d.EstimateReclaimable(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -65,7 +65,7 @@ func (d *DockerCleaner) Clean(dryRun bool) (int64, error) {
 		return reclaimable, nil
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "docker", "builder", "prune", "-a", "-f").Output()
 	if err != nil {

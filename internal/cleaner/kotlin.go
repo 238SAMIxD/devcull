@@ -1,6 +1,8 @@
 package cleaner
 
 import (
+	"context"
+
 	"os"
 	"path/filepath"
 )
@@ -18,7 +20,7 @@ func (k *KotlinCleaner) getCachePath() (string, error) {
 	return filepath.Join(home, ".konan"), nil
 }
 
-func (k *KotlinCleaner) IsInstalled() bool {
+func (k *KotlinCleaner) IsInstalled(ctx context.Context) bool {
 	p, err := k.getCachePath()
 	if err != nil {
 		return false
@@ -27,18 +29,18 @@ func (k *KotlinCleaner) IsInstalled() bool {
 	return err == nil && info.IsDir()
 }
 
-func (k *KotlinCleaner) EstimateReclaimable() (int64, error) {
+func (k *KotlinCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
 	p, err := k.getCachePath()
 	if err != nil {
 		return 0, err
 	}
-	return dirSize(p)
+	return dirSize(ctx, p)
 }
 
-func (k *KotlinCleaner) Clean(dryRun bool) (int64, error) {
+func (k *KotlinCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 	p, err := k.getCachePath()
 	if err != nil {
 		return 0, err
 	}
-	return cleanDirs([]string{p}, dryRun)
+	return cleanDirs(ctx, []string{p}, dryRun)
 }

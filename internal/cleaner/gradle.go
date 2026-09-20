@@ -1,6 +1,8 @@
 package cleaner
 
 import (
+	"context"
+
 	"os"
 	"path/filepath"
 )
@@ -18,7 +20,7 @@ func (g *GradleCleaner) getCachePath() (string, error) {
 	return filepath.Join(home, ".gradle", "caches"), nil
 }
 
-func (g *GradleCleaner) IsInstalled() bool {
+func (g *GradleCleaner) IsInstalled(ctx context.Context) bool {
 	p, err := g.getCachePath()
 	if err != nil {
 		return false
@@ -27,18 +29,18 @@ func (g *GradleCleaner) IsInstalled() bool {
 	return err == nil && info.IsDir()
 }
 
-func (g *GradleCleaner) EstimateReclaimable() (int64, error) {
+func (g *GradleCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
 	p, err := g.getCachePath()
 	if err != nil {
 		return 0, err
 	}
-	return dirSize(p)
+	return dirSize(ctx, p)
 }
 
-func (g *GradleCleaner) Clean(dryRun bool) (int64, error) {
+func (g *GradleCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 	p, err := g.getCachePath()
 	if err != nil {
 		return 0, err
 	}
-	return cleanDirs([]string{p}, dryRun)
+	return cleanDirs(ctx, []string{p}, dryRun)
 }

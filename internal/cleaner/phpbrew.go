@@ -1,6 +1,8 @@
 package cleaner
 
 import (
+	"context"
+
 	"os"
 	"path/filepath"
 )
@@ -22,7 +24,7 @@ func (p *PhpbrewCleaner) getCachePaths() []string {
 	}
 }
 
-func (p *PhpbrewCleaner) IsInstalled() bool {
+func (p *PhpbrewCleaner) IsInstalled(ctx context.Context) bool {
 	for _, path := range p.getCachePaths() {
 		if info, err := os.Stat(path); err == nil && info.IsDir() {
 			return true
@@ -31,10 +33,10 @@ func (p *PhpbrewCleaner) IsInstalled() bool {
 	return false
 }
 
-func (p *PhpbrewCleaner) EstimateReclaimable() (int64, error) {
-	return dirsSize(p.getCachePaths())
+func (p *PhpbrewCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
+	return dirsSize(ctx, p.getCachePaths())
 }
 
-func (p *PhpbrewCleaner) Clean(dryRun bool) (int64, error) {
-	return cleanDirs(p.getCachePaths(), dryRun)
+func (p *PhpbrewCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
+	return cleanDirs(ctx, p.getCachePaths(), dryRun)
 }
