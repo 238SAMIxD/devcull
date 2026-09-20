@@ -26,60 +26,54 @@ func (d *DenoCleaner) IsInstalled() bool {
 	return true
 }
 
-func (d *DenoCleaner) getCachePath() string {
+func (d *DenoCleaner) getCachePaths() []string {
+	var base string
 	if custom := os.Getenv("DENO_DIR"); custom != "" {
 		if filepath.IsAbs(custom) {
-			return custom
+			base = custom
+		} else if abs, err := filepath.Abs(custom); err == nil {
+			base = abs
 		}
-		if abs, err := filepath.Abs(custom); err == nil {
-			return abs
+	}
+
+	if base == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return nil
+		}
+		if cacheDir, err := os.UserCacheDir(); err == nil {
+			base = filepath.Join(cacheDir, "deno")
+		} else {
+			base = filepath.Join(home, ".cache", "deno")
 		}
 	}
 
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return ""
+	if base == "" {
+		return nil
+	}
+	
+	base = filepath.Clean(base)
+	if base == "/" || base == "." || base == "\\" {
+		return nil
+	}
+	if home, err := os.UserHomeDir(); err == nil && base == filepath.Clean(home) {
+		return nil
+	}
+	vol := filepath.VolumeName(base)
+	if base == vol+"\\" || base == vol+"/" || base == vol {
+		return nil
 	}
 
-	if d, err := os.UserCacheDir(); err == nil {
-		return filepath.Join(d, "deno")
+	return []string{
+		filepath.Join(base, "deps"),
+		filepath.Join(base, "gen"),
 	}
-
-	return filepath.Join(home, ".cache", "deno")
 }
 
 func (d *DenoCleaner) EstimateReclaimable() (int64, error) {
-	path := d.getCachePath()
-	if path == "" {
-		return 0, nil
-	}
-	return dirSize(path)
+	return dirsSize(d.getCachePaths())
 }
 
 func (d *DenoCleaner) Clean(dryRun bool) (int64, error) {
-	before, err := d.EstimateReclaimable()
-	if err != nil {
-		return 0, err
-	}
-
-	if dryRun {
-		return before, nil
-	}
-
-	path := d.getCachePath()
-	if path != "" {
-		if err := os.RemoveAll(path); err != nil && !os.IsNotExist(err) {
-			return 0, err
-		}
-	}
-
-	after, err := dirSize(path)
-	if err != nil {
-		return 0, err
-	}
-	reclaimed := before - after
-	if reclaimed < 0 {
-		reclaimed = 0
-	}
-	return reclaimed, nil
+	return cleanDirs(d.getCachePaths(), dryRun)
 }
