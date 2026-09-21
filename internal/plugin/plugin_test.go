@@ -52,3 +52,4 @@ esac
 		t.Errorf("Expected reclaimed size 1024, got %d", reclaimed)
 	}
 }
+

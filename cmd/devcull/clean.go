@@ -7,9 +7,11 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"time"
 
 	"github.com/238SAMIxD/devcull/internal/cleaner"
 	"github.com/238SAMIxD/devcull/internal/engine"
+	"github.com/238SAMIxD/devcull/internal/plugin"
 	"github.com/238SAMIxD/devcull/internal/stats"
 	"github.com/238SAMIxD/devcull/internal/ui"
 	"github.com/spf13/cobra"
@@ -17,6 +19,11 @@ import (
 
 var dryRun bool
 var yesRun bool
+
+type runStat struct {
+	name      string
+	reclaimed int64
+}
 
 var cleanCmd = &cobra.Command{
 	Use:   "clean [tool...]",
@@ -46,9 +53,23 @@ var cleanCmd = &cobra.Command{
 		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 		defer stop()
 
+		var nativeTargets []cleaner.Cleaner
+		var pluginTargets []cleaner.Cleaner
+		for _, c := range activeCleaners {
+			if _, isPlugin := c.(*plugin.SubprocessCleaner); isPlugin {
+				pluginTargets = append(pluginTargets, c)
+			} else {
+				nativeTargets = append(nativeTargets, c)
+			}
+		}
+
 		if !dryRun && !yesRun {
 			fmt.Println("Scanning...")
-			scanResults := engine.Scan(ctx, activeCleaners)
+			scanResults := engine.Scan(ctx, nativeTargets)
+			if ctx.Err() == nil && len(pluginTargets) > 0 {
+				scanResults = append(scanResults, engine.Scan(ctx, pluginTargets)...)
+			}
+			
 			var totalReclaimable int64
 			var scanErr error
 			for _, r := range scanResults {
@@ -81,53 +102,37 @@ var cleanCmd = &cobra.Command{
 			}
 		}
 
-		results := engine.Run(ctx, activeCleaners, dryRun)
-
 		var sessionTotal int64
-		hasArgs := len(args) > 0
 		var hasError bool
-
-		type runStat struct {
-			name      string
-			reclaimed int64
-		}
 		var successfulRuns []runStat
 
-		for _, r := range results {
-			if r.Skipped {
-				if hasArgs {
-					fmt.Printf("⏭️  %s skipped (not installed)\n", r.CleanerName)
-				}
-				continue
-			}
-			if r.Reclaimed > 0 {
-				sessionTotal += r.Reclaimed
-				if !dryRun && r.Err != nil {
-					successfulRuns = append(successfulRuns, runStat{name: r.CleanerName, reclaimed: r.Reclaimed})
-				}
-			}
+		nativeStart := time.Now()
+		nativeResults := engine.Run(ctx, nativeTargets, dryRun)
+		nativeDuration := time.Since(nativeStart)
 
-			if r.Err != nil {
-				fmt.Printf("❌ %s failed: %v\n", r.CleanerName, r.Err)
-				if r.Reclaimed > 0 {
-					if dryRun {
-						fmt.Printf("   (Partially would reclaim %s)\n", ui.FormatBytes(r.Reclaimed))
-					} else {
-						fmt.Printf("   (Partially reclaimed %s)\n", ui.FormatBytes(r.Reclaimed))
-					}
-				}
+		nTotal, nHasErr, nRuns := printCleanResults(nativeResults, args, dryRun)
+		fmt.Printf("\nNative phase completed in %s. Subtotal: %s\n", nativeDuration.Round(time.Millisecond), ui.FormatBytes(nTotal))
+		sessionTotal += nTotal
+		if nHasErr {
+			hasError = true
+		}
+		successfulRuns = append(successfulRuns, nRuns...)
+
+		var pluginsDuration time.Duration
+
+		if ctx.Err() == nil && len(pluginTargets) > 0 {
+			fmt.Println("\n--- Plugins ---")
+			pluginsStart := time.Now()
+			pluginResults := engine.Run(ctx, pluginTargets, dryRun)
+			pluginsDuration = time.Since(pluginsStart)
+
+			pTotal, pHasErr, pRuns := printCleanResults(pluginResults, args, dryRun)
+			fmt.Printf("\nPlugin phase completed in %s. Subtotal: %s\n", pluginsDuration.Round(time.Millisecond), ui.FormatBytes(pTotal))
+			sessionTotal += pTotal
+			if pHasErr {
 				hasError = true
-				continue
 			}
-
-			if r.Reclaimed > 0 {
-				if dryRun {
-					fmt.Printf("[DRY RUN] %s would reclaim %s\n", r.CleanerName, ui.FormatBytes(r.Reclaimed))
-				} else {
-					fmt.Printf("✅ %s reclaimed %s\n", r.CleanerName, ui.FormatBytes(r.Reclaimed))
-					successfulRuns = append(successfulRuns, runStat{name: r.CleanerName, reclaimed: r.Reclaimed})
-				}
-			}
+			successfulRuns = append(successfulRuns, pRuns...)
 		}
 
 		if dryRun {
@@ -152,12 +157,62 @@ var cleanCmd = &cobra.Command{
 			}
 		}
 
+		fmt.Printf("⏱️  Time: Native: %s | Plugins: %s | Total: %s\n", 
+			nativeDuration.Round(time.Millisecond), 
+			pluginsDuration.Round(time.Millisecond), 
+			(nativeDuration + pluginsDuration).Round(time.Millisecond))
+
 		if hasError {
 			os.Exit(1)
 		}
 
 		return nil
 	},
+}
+
+func printCleanResults(results []engine.Result, args []string, dryRun bool) (int64, bool, []runStat) {
+	var total int64
+	var hasError bool
+	var successfulRuns []runStat
+	hasArgs := len(args) > 0
+
+	for _, r := range results {
+		if r.Skipped {
+			if hasArgs {
+				fmt.Printf("⏭️  %s skipped (not installed)\n", r.CleanerName)
+			}
+			continue
+		}
+		if r.Reclaimed > 0 {
+			total += r.Reclaimed
+			if !dryRun && r.Err != nil {
+				successfulRuns = append(successfulRuns, runStat{name: r.CleanerName, reclaimed: r.Reclaimed})
+			}
+		}
+
+		if r.Err != nil {
+			fmt.Printf("❌ %s failed: %v\n", r.CleanerName, r.Err)
+			if r.Reclaimed > 0 {
+				if dryRun {
+					fmt.Printf("   (Partially would reclaim %s)\n", ui.FormatBytes(r.Reclaimed))
+				} else {
+					fmt.Printf("   (Partially reclaimed %s)\n", ui.FormatBytes(r.Reclaimed))
+				}
+			}
+			hasError = true
+			continue
+		}
+
+		if r.Reclaimed > 0 {
+			if dryRun {
+				fmt.Printf("[DRY RUN] %s would reclaim %s\n", r.CleanerName, ui.FormatBytes(r.Reclaimed))
+			} else {
+				fmt.Printf("✅ %s reclaimed %s\n", r.CleanerName, ui.FormatBytes(r.Reclaimed))
+				successfulRuns = append(successfulRuns, runStat{name: r.CleanerName, reclaimed: r.Reclaimed})
+			}
+		}
+	}
+	return total, hasError, successfulRuns
 }
 
 func init() {
