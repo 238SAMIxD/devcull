@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os/exec"
+	"syscall"
 	"time"
 
 	"github.com/238SAMIxD/devcull/internal/cleaner"
@@ -41,6 +42,10 @@ func (p *SubprocessCleaner) IsInstalled(ctx context.Context) bool {
 	cmdArgs = append(cmdArgs, "installed")
 	cmd := exec.CommandContext(ctx, p.manifest.Entrypoint[0], cmdArgs...)
 	cmd.Dir = p.manifest.WorkingDir
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	cmd.Cancel = func() error {
+		return syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+	}
 
 	out, err := cmd.Output()
 	if err != nil {
@@ -64,6 +69,10 @@ func (p *SubprocessCleaner) EstimateReclaimable(ctx context.Context) (int64, err
 	cmdArgs = append(cmdArgs, "estimate")
 	cmd := exec.CommandContext(ctx, p.manifest.Entrypoint[0], cmdArgs...)
 	cmd.Dir = p.manifest.WorkingDir
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	cmd.Cancel = func() error {
+		return syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+	}
 
 	out, err := cmd.Output()
 	if err != nil {
@@ -96,6 +105,10 @@ func (p *SubprocessCleaner) Clean(ctx context.Context, dryRun bool) (int64, erro
 
 	cmd := exec.CommandContext(ctx, p.manifest.Entrypoint[0], args...)
 	cmd.Dir = p.manifest.WorkingDir
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	cmd.Cancel = func() error {
+		return syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+	}
 
 	out, err := cmd.Output()
 	if err != nil {
