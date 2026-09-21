@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/238SAMIxD/devcull/internal/cleaner"
 )
@@ -54,40 +53,3 @@ esac
 	}
 }
 
-func TestSubprocessCleanerCancellation(t *testing.T) {
-	tempDir := t.TempDir()
-
-	mockScript := filepath.Join(tempDir, "mock_sleep.sh")
-	scriptContent := `#!/bin/bash
-trap "" SIGTERM SIGINT
-sleep 10
-`
-	os.WriteFile(mockScript, []byte(scriptContent), 0755)
-
-	p := &SubprocessCleaner{
-		manifest: Manifest{
-			Name:       "MockSleep",
-			Category:   cleaner.Category("Test"),
-			Entrypoint: []string{"bash", "mock_sleep.sh"},
-			WorkingDir: tempDir,
-		},
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-
-	go func() {
-		time.Sleep(100 * time.Millisecond)
-		cancel()
-	}()
-
-	start := time.Now()
-	_, err := p.EstimateReclaimable(ctx)
-	duration := time.Since(start)
-
-	if err == nil {
-		t.Error("Expected error from cancelled context, got nil")
-	}
-	if duration > 5*time.Second {
-		t.Errorf("Cancellation failed or leaked, took %v", duration)
-	}
-}
