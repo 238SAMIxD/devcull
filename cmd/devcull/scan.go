@@ -58,7 +58,6 @@ var scanCmd = &cobra.Command{
 		var totalReclaimable int64
 		var hasError bool
 
-		// Phase 1: Native
 		nativeStart := time.Now()
 		nativeResults := engine.Scan(ctx, nativeTargets)
 		nativeDuration := time.Since(nativeStart)
@@ -72,7 +71,6 @@ var scanCmd = &cobra.Command{
 
 		var pluginsDuration time.Duration
 
-		// Phase 2: Plugins
 		if ctx.Err() == nil && len(pluginTargets) > 0 {
 			fmt.Println("\n--- Plugins ---")
 			pluginsStart := time.Now()

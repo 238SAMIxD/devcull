@@ -106,7 +106,6 @@ var cleanCmd = &cobra.Command{
 		var hasError bool
 		var successfulRuns []runStat
 
-		// Phase 1: Native
 		nativeStart := time.Now()
 		nativeResults := engine.Run(ctx, nativeTargets, dryRun)
 		nativeDuration := time.Since(nativeStart)
@@ -121,7 +120,6 @@ var cleanCmd = &cobra.Command{
 
 		var pluginsDuration time.Duration
 
-		// Phase 2: Plugins
 		if ctx.Err() == nil && len(pluginTargets) > 0 {
 			fmt.Println("\n--- Plugins ---")
 			pluginsStart := time.Now()
