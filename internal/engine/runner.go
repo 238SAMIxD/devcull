@@ -24,126 +24,131 @@ type ScanResult struct {
 	Err         error
 }
 
-func Run(ctx context.Context, cleaners []cleaner.Cleaner, dryRun bool) []Result {
+func execute[T any](
+	ctx context.Context,
+	cleaners []cleaner.Cleaner,
+	concurrencyLimit int,
+	makeCancelResult func(c cleaner.Cleaner, err error) T,
+	makeSkippedResult func(c cleaner.Cleaner) T,
+	doWork func(ctx context.Context, c cleaner.Cleaner) T,
+	onProgress func(),
+) []T {
+	var results []T
 	var wg sync.WaitGroup
-	resultsCh := make(chan Result, len(cleaners))
-	sem := make(chan struct{}, runtime.NumCPU())
+	var mu sync.Mutex
+
+	var sem chan struct{}
+	if concurrencyLimit > 0 {
+		sem = make(chan struct{}, concurrencyLimit)
+	}
 
 	for _, c := range cleaners {
 		wg.Add(1)
 		go func(clr cleaner.Cleaner) {
 			defer wg.Done()
-
-			select {
-			case sem <- struct{}{}:
-			case <-ctx.Done():
-				resultsCh <- Result{
-					CleanerName: clr.Name(),
-					Category:    clr.Category(),
-					Err:         ctx.Err(),
-				}
-				return
+			if onProgress != nil {
+				defer onProgress()
 			}
-			defer func() { <-sem }()
+
+			if sem != nil {
+				select {
+				case sem <- struct{}{}:
+				case <-ctx.Done():
+					mu.Lock()
+					results = append(results, makeCancelResult(clr, ctx.Err()))
+					mu.Unlock()
+					return
+				}
+				defer func() { <-sem }()
+			}
 
 			select {
 			case <-ctx.Done():
-				resultsCh <- Result{
-					CleanerName: clr.Name(),
-					Category:    clr.Category(),
-					Err:         ctx.Err(),
-				}
+				mu.Lock()
+				results = append(results, makeCancelResult(clr, ctx.Err()))
+				mu.Unlock()
 				return
 			default:
 			}
 
 			if !clr.IsInstalled(ctx) {
-				resultsCh <- Result{
-					CleanerName: clr.Name(),
-					Category:    clr.Category(),
-					Skipped:     true,
-				}
+				mu.Lock()
+				results = append(results, makeSkippedResult(clr))
+				mu.Unlock()
 				return
 			}
 
-			reclaimed, err := clr.Clean(ctx, dryRun)
-			resultsCh <- Result{
-				CleanerName: clr.Name(),
-				Category:    clr.Category(),
-				Reclaimed:   reclaimed,
-				Err:         err,
-			}
+			res := doWork(ctx, clr)
+			mu.Lock()
+			results = append(results, res)
+			mu.Unlock()
 		}(c)
 	}
 
 	wg.Wait()
-	close(resultsCh)
-
-	var results []Result
-	for r := range resultsCh {
-		results = append(results, r)
-	}
 	return results
 }
 
-func Scan(ctx context.Context, cleaners []cleaner.Cleaner) []ScanResult {
-	var wg sync.WaitGroup
-	resultsCh := make(chan ScanResult, len(cleaners))
-	sem := make(chan struct{}, runtime.NumCPU())
+func Run(ctx context.Context, cleaners []cleaner.Cleaner, dryRun bool, onProgress func()) []Result {
+	return execute(ctx, cleaners, runtime.NumCPU(),
+		func(c cleaner.Cleaner, err error) Result {
+			return Result{CleanerName: c.Name(), Category: c.Category(), Err: err}
+		},
+		func(c cleaner.Cleaner) Result {
+			return Result{CleanerName: c.Name(), Category: c.Category(), Skipped: true}
+		},
+		func(ctx context.Context, c cleaner.Cleaner) Result {
+			reclaimed, err := c.Clean(ctx, dryRun)
+			return Result{CleanerName: c.Name(), Category: c.Category(), Reclaimed: reclaimed, Err: err}
+		},
+		onProgress,
+	)
+}
 
-	for _, c := range cleaners {
-		wg.Add(1)
-		go func(clr cleaner.Cleaner) {
-			defer wg.Done()
+func Scan(ctx context.Context, cleaners []cleaner.Cleaner, onProgress func()) []ScanResult {
+	return execute(ctx, cleaners, runtime.NumCPU(),
+		func(c cleaner.Cleaner, err error) ScanResult {
+			return ScanResult{CleanerName: c.Name(), Category: c.Category(), Err: err}
+		},
+		func(c cleaner.Cleaner) ScanResult {
+			return ScanResult{CleanerName: c.Name(), Category: c.Category(), Skipped: true}
+		},
+		func(ctx context.Context, c cleaner.Cleaner) ScanResult {
+			reclaimable, err := c.EstimateReclaimable(ctx)
+			return ScanResult{CleanerName: c.Name(), Category: c.Category(), Reclaimable: reclaimable, Err: err}
+		},
+		onProgress,
+	)
+}
 
-			select {
-			case sem <- struct{}{}:
-			case <-ctx.Done():
-				resultsCh <- ScanResult{
-					CleanerName: clr.Name(),
-					Category:    clr.Category(),
-					Err:         ctx.Err(),
-				}
-				return
-			}
-			defer func() { <-sem }()
+func RunPlugins(ctx context.Context, cleaners []cleaner.Cleaner, dryRun bool, onProgress func()) []Result {
+	return execute(ctx, cleaners, runtime.NumCPU()*4,
+		func(c cleaner.Cleaner, err error) Result {
+			return Result{CleanerName: c.Name(), Category: c.Category(), Err: err}
+		},
+		func(c cleaner.Cleaner) Result {
+			return Result{CleanerName: c.Name(), Category: c.Category(), Skipped: true}
+		},
+		func(ctx context.Context, c cleaner.Cleaner) Result {
+			reclaimed, err := c.Clean(ctx, dryRun)
+			return Result{CleanerName: c.Name(), Category: c.Category(), Reclaimed: reclaimed, Err: err}
+		},
+		onProgress,
+	)
+}
 
-			select {
-			case <-ctx.Done():
-				resultsCh <- ScanResult{
-					CleanerName: clr.Name(),
-					Category:    clr.Category(),
-					Err:         ctx.Err(),
-				}
-				return
-			default:
-			}
-
-			if !clr.IsInstalled(ctx) {
-				resultsCh <- ScanResult{
-					CleanerName: clr.Name(),
-					Category:    clr.Category(),
-					Skipped:     true,
-				}
-				return
-			}
-
-			reclaimable, err := clr.EstimateReclaimable(ctx)
-			resultsCh <- ScanResult{
-				CleanerName: clr.Name(),
-				Category:    clr.Category(),
-				Reclaimable: reclaimable,
-				Err:         err,
-			}
-		}(c)
-	}
-
-	wg.Wait()
-	close(resultsCh)
-
-	var results []ScanResult
-	for r := range resultsCh {
-		results = append(results, r)
-	}
-	return results
+func ScanPlugins(ctx context.Context, cleaners []cleaner.Cleaner, onProgress func()) []ScanResult {
+	return execute(ctx, cleaners, runtime.NumCPU()*4,
+		func(c cleaner.Cleaner, err error) ScanResult {
+			return ScanResult{CleanerName: c.Name(), Category: c.Category(), Err: err}
+		},
+		func(c cleaner.Cleaner) ScanResult {
+			return ScanResult{CleanerName: c.Name(), Category: c.Category(), Skipped: true}
+		},
+		func(ctx context.Context, c cleaner.Cleaner) ScanResult {
+			reclaimable, err := c.EstimateReclaimable(ctx)
+			return ScanResult{CleanerName: c.Name(), Category: c.Category(), Reclaimable: reclaimable, Err: err}
+		},
+		onProgress,
+	)
 }

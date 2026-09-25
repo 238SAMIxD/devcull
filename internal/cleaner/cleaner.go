@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"sync"
+	"sync/atomic"
 )
 
 type Category string
@@ -116,39 +119,108 @@ func Native() []Cleaner {
 	}
 }
 
+var (
+	sem       = make(chan struct{}, runtime.NumCPU()*8)
+	workerSem = make(chan struct{}, runtime.NumCPU()*64)
+)
+
+func walkDirConcurrent(ctx context.Context, path string, size *atomic.Int64, wg *sync.WaitGroup, errMu *sync.Mutex, firstErr *error) {
+	defer wg.Done()
+
+	select {
+	case <-ctx.Done():
+		return
+	default:
+	}
+
+	sem <- struct{}{}
+	entries, err := os.ReadDir(path)
+	<-sem
+
+	if err != nil {
+		if !os.IsNotExist(err) {
+			errMu.Lock()
+			if *firstErr == nil {
+				*firstErr = err
+			}
+			errMu.Unlock()
+		}
+		return
+	}
+
+	for _, entry := range entries {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
+		if entry.IsDir() {
+			subPath := filepath.Join(path, entry.Name())
+			select {
+			case workerSem <- struct{}{}:
+				wg.Add(1)
+				go func() {
+					defer func() { <-workerSem }()
+					walkDirConcurrent(ctx, subPath, size, wg, errMu, firstErr)
+				}()
+			default:
+				wg.Add(1)
+				walkDirConcurrent(ctx, subPath, size, wg, errMu, firstErr)
+			}
+		} else {
+			info, err := entry.Info()
+			if err == nil {
+				size.Add(info.Size())
+			} else if !os.IsNotExist(err) {
+				errMu.Lock()
+				if *firstErr == nil {
+					*firstErr = err
+				}
+				errMu.Unlock()
+			}
+		}
+	}
+}
+
 func dirSize(ctx context.Context, path string) (int64, error) {
 	if path == "" {
 		return 0, fmt.Errorf("empty path provided to dirSize")
 	}
-	var size int64
-	err := filepath.WalkDir(path, func(_ string, d os.DirEntry, err error) error {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
+
+	info, err := os.Lstat(path)
+	if err != nil {
+		if errCtx := ctx.Err(); errCtx != nil {
+			return 0, errCtx
 		}
-		if err != nil {
-			if os.IsNotExist(err) {
-				return nil
-			}
-			return err
+		if os.IsNotExist(err) {
+			return 0, nil
 		}
-		if !d.IsDir() {
-			info, err := d.Info()
-			if err != nil {
-				if os.IsNotExist(err) {
-					return nil
-				}
-				return err
-			}
-			size += info.Size()
-		}
-		return nil
-	})
-	if os.IsNotExist(err) {
-		return size, nil
+		return 0, err
 	}
-	return size, err
+
+	var size atomic.Int64
+	if !info.IsDir() {
+		if errCtx := ctx.Err(); errCtx != nil {
+			return 0, errCtx
+		}
+		size.Add(info.Size())
+		return size.Load(), nil
+	}
+
+	var wg sync.WaitGroup
+	var errMu sync.Mutex
+	var firstErr error
+
+	wg.Add(1)
+	go walkDirConcurrent(ctx, path, &size, &wg, &errMu, &firstErr)
+	wg.Wait()
+
+	if ctx.Err() != nil {
+		return size.Load(), ctx.Err()
+	}
+
+	return size.Load(), firstErr
 }
 
 func dirsSize(ctx context.Context, paths []string) (int64, error) {

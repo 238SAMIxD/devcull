@@ -90,7 +90,7 @@ func TestRunner_ConcurrencyLimit(t *testing.T) {
 	defer cancel()
 
 	go func() {
-		engine.Run(ctx, cleaners, false)
+		engine.Run(ctx, cleaners, false, nil)
 		close(done)
 	}()
 
@@ -124,7 +124,7 @@ func TestRunner_ContextCancellation(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	results := engine.Run(ctx, cleaners, false)
+	results := engine.Run(ctx, cleaners, false, nil)
 
 	if len(results) != numCleaners {
 		t.Errorf("Expected %d results, got %d", numCleaners, len(results))
