@@ -79,6 +79,7 @@ func Native() []Cleaner {
 		&PipCleaner{},
 		&UvCleaner{},
 		&PoetryCleaner{},
+		&CondaCleaner{},
 
 		// C/C++
 		&UnrealCleaner{},
@@ -283,6 +284,12 @@ func isSafeToDelete(targetPath string) bool {
 		filepath.Join(cleanHome, ".yarn"),
 		filepath.Join(cleanHome, ".docker"),
 		filepath.Join(cleanHome, ".poetry"),
+		filepath.Join(cleanHome, ".conda"),
+		filepath.Join(cleanHome, "anaconda3"),
+		filepath.Join(cleanHome, "miniconda3"),
+		filepath.Join(cleanHome, "miniforge3"),
+		filepath.Join(cleanHome, "mambaforge"),
+		filepath.Join(cleanHome, "micromamba"),
 		filepath.Join(cleanHome, ".ccache"),
 		filepath.Join(cleanHome, ".conan"),
 		filepath.Join(cleanHome, ".conan2"),
