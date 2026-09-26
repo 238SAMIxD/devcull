@@ -13,14 +13,26 @@ func StartSpinner(ctx context.Context, message string) context.CancelFunc {
 	return cancel
 }
 
-func StartProgressSpinner(ctx context.Context, message string, total int) (func(), context.CancelFunc) {
-	ctx, cancel := context.WithCancel(ctx)
-	var completed atomic.Int32
-	done := make(chan struct{})
+func isTTY() bool {
+	info, err := os.Stdout.Stat()
+	if err != nil {
+		return false
+	}
+	return (info.Mode() & os.ModeCharDevice) != 0
+}
 
+func StartProgressSpinner(ctx context.Context, message string, total int) (func(), context.CancelFunc) {
+	var completed atomic.Int32
 	increment := func() {
 		completed.Add(1)
 	}
+
+	if !isTTY() {
+		return increment, func() {}
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	done := make(chan struct{})
 
 	go func() {
 		defer close(done)
