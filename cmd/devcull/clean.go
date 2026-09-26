@@ -70,7 +70,7 @@ var cleanCmd = &cobra.Command{
 				scanResults = append(scanResults, engine.ScanPlugins(ctx, pluginTargets, incScan)...)
 			}
 			stopSpinner()
-			
+
 			var totalReclaimable int64
 			var scanErr error
 			for _, r := range scanResults {

@@ -13,7 +13,9 @@ type JetBrainsCleaner struct{}
 func (c *JetBrainsCleaner) Name() string       { return "JetBrains" }
 func (c *JetBrainsCleaner) Category() Category { return CategoryIDE }
 
-func (c *JetBrainsCleaner) Aliases() []string { return []string{"idea", "intellij", "pycharm", "webstorm", "goland", "rider", "clion", "phpstorm", "rubymine"} }
+func (c *JetBrainsCleaner) Aliases() []string {
+	return []string{"idea", "intellij", "pycharm", "webstorm", "goland", "rider", "clion", "phpstorm", "rubymine"}
+}
 
 func (c *JetBrainsCleaner) getPaths() []string {
 	home, err := os.UserHomeDir()
