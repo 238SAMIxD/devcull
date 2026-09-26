@@ -116,6 +116,8 @@ func Native() []Cleaner {
 		&NetBeansCleaner{},
 		&SublimeCleaner{},
 		&VisualStudioCleaner{},
+		&ArduinoCleaner{},
+		&ArduinoLabCleaner{},
 	}
 }
 
@@ -299,6 +301,21 @@ func isSafeToDelete(targetPath string) bool {
 	if localAppData := os.Getenv("LOCALAPPDATA"); localAppData != "" {
 		safeRoots = append(safeRoots, filepath.Clean(localAppData))
 	}
+
+	if appData := os.Getenv("APPDATA"); appData != "" {
+		safeRoots = append(safeRoots, filepath.Clean(appData))
+	}
+
+	if tempDir := os.Getenv("TEMP"); tempDir != "" {
+		safeRoots = append(safeRoots, filepath.Clean(tempDir))
+	}
+
+	if configDir, err := os.UserConfigDir(); err == nil {
+		safeRoots = append(safeRoots, filepath.Join(configDir, "arduino-ide"))
+		safeRoots = append(safeRoots, filepath.Join(configDir, "arduino-lab-for-micropython"))
+	}
+	safeRoots = append(safeRoots, filepath.Join(cleanHome, "Library", "Application Support", "arduino-ide"))
+	safeRoots = append(safeRoots, filepath.Join(cleanHome, "Library", "Application Support", "arduino-lab-for-micropython"))
 
 	for _, root := range safeRoots {
 		if root == "" || root == "." {
