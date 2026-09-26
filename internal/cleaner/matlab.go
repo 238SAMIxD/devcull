@@ -25,13 +25,27 @@ func (c *MatlabCleaner) getPaths() []string {
 		if localAppData := os.Getenv("LOCALAPPDATA"); localAppData != "" {
 			paths = append(paths, filepath.Join(localAppData, "MathWorks", "MatlabRuntimeCache"))
 		}
-	default: // darwin and linux
-		paths = append(paths, filepath.Join(home, ".mathworks"))
+	case "linux":
+		paths = append(paths, filepath.Join(home, ".MathWorks", "MatlabRuntimeCache"))
+	case "darwin":
+		paths = append(paths, filepath.Join(home, "Library", "Caches", "MathWorks"))
+		if matches, err := filepath.Glob(filepath.Join(home, "Library", "Caches", "com.mathworks*")); err == nil {
+			paths = append(paths, matches...)
+		}
 	}
 	return paths
 }
 
 func (c *MatlabCleaner) IsInstalled(ctx context.Context) bool {
+	home, err := os.UserHomeDir()
+	if err == nil {
+		if runtime.GOOS != "windows" {
+			if info, err := os.Stat(filepath.Join(home, ".MathWorks")); err == nil && info.IsDir() {
+				return true
+			}
+		}
+	}
+
 	for _, p := range c.getPaths() {
 		if info, err := os.Stat(p); err == nil && info.IsDir() {
 			return true

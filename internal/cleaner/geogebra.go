@@ -26,10 +26,8 @@ func (c *GeoGebraCleaner) getPaths() []string {
 	case "linux":
 		paths = append(paths, filepath.Join(home, ".cache", "GeoGebra"))
 	case "windows":
-		if localAppData := os.Getenv("LOCALAPPDATA"); localAppData != "" {
-			paths = append(paths, filepath.Join(localAppData, "GeoGebra_5.0", "Cache"))
-		}
 		if appData := os.Getenv("APPDATA"); appData != "" {
+			paths = append(paths, filepath.Join(appData, "GeoGebra 5.0", "Cache"))
 			paths = append(paths, filepath.Join(appData, "GeoGebra", "Cache"))
 		}
 	}

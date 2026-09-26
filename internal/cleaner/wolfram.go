@@ -22,18 +22,44 @@ func (c *WolframCleaner) getPaths() []string {
 	var paths []string
 	switch runtime.GOOS {
 	case "darwin":
-		paths = append(paths, filepath.Join(home, "Library", "Caches", "Wolfram", "Mathematica"))
+		if matches, err := filepath.Glob(filepath.Join(home, "Library", "Mathematica", "FrontEnd", "*_Caches")); err == nil {
+			paths = append(paths, matches...)
+		}
 	case "linux":
-		paths = append(paths, filepath.Join(home, ".cache", "Wolfram", "Mathematica"))
+		if matches, err := filepath.Glob(filepath.Join(home, ".Mathematica", "FrontEnd", "*_Caches")); err == nil {
+			paths = append(paths, matches...)
+		}
 	case "windows":
 		if localAppData := os.Getenv("LOCALAPPDATA"); localAppData != "" {
-			paths = append(paths, filepath.Join(localAppData, "Wolfram Research", "Mathematica", "Cache"))
+			if matches, err := filepath.Glob(filepath.Join(localAppData, "Mathematica", "FrontEnd", "* Caches")); err == nil {
+				paths = append(paths, matches...)
+			}
 		}
 	}
 	return paths
 }
 
 func (c *WolframCleaner) IsInstalled(ctx context.Context) bool {
+	home, err := os.UserHomeDir()
+	if err == nil {
+		var baseDir string
+		switch runtime.GOOS {
+		case "darwin":
+			baseDir = filepath.Join(home, "Library", "Mathematica")
+		case "linux":
+			baseDir = filepath.Join(home, ".Mathematica")
+		case "windows":
+			if localAppData := os.Getenv("LOCALAPPDATA"); localAppData != "" {
+				baseDir = filepath.Join(localAppData, "Mathematica")
+			}
+		}
+		if baseDir != "" {
+			if info, err := os.Stat(baseDir); err == nil && info.IsDir() {
+				return true
+			}
+		}
+	}
+
 	for _, p := range c.getPaths() {
 		if info, err := os.Stat(p); err == nil && info.IsDir() {
 			return true

@@ -302,7 +302,9 @@ func isSafeToDelete(targetPath string) bool {
 		filepath.Join(cleanHome, ".phpbrew"),
 		filepath.Join(cleanHome, ".eclipse"),
 		filepath.Join(cleanHome, ".vscode"),
-		filepath.Join(cleanHome, ".mathworks"),
+		filepath.Join(cleanHome, ".MathWorks"),
+		filepath.Join(cleanHome, ".Mathematica"),
+		filepath.Join(cleanHome, "Library", "Mathematica"),
 	)
 
 	if localAppData := os.Getenv("LOCALAPPDATA"); localAppData != "" {

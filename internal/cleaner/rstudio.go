@@ -23,10 +23,8 @@ func (c *RStudioCleaner) getPaths() []string {
 	switch runtime.GOOS {
 	case "darwin":
 		paths = append(paths, filepath.Join(home, "Library", "Caches", "RStudio"))
-		paths = append(paths, filepath.Join(home, ".local", "share", "rstudio", "sessions"))
 	case "linux":
 		paths = append(paths, filepath.Join(home, ".cache", "rstudio"))
-		paths = append(paths, filepath.Join(home, ".local", "share", "rstudio", "sessions"))
 	case "windows":
 		if localAppData := os.Getenv("LOCALAPPDATA"); localAppData != "" {
 			paths = append(paths, filepath.Join(localAppData, "RStudio"))
@@ -37,6 +35,26 @@ func (c *RStudioCleaner) getPaths() []string {
 }
 
 func (c *RStudioCleaner) IsInstalled(ctx context.Context) bool {
+	home, err := os.UserHomeDir()
+	if err == nil {
+		var configPath string
+		switch runtime.GOOS {
+		case "darwin":
+			configPath = filepath.Join(home, "Library", "Application Support", "RStudio")
+		case "linux":
+			configPath = filepath.Join(home, ".local", "share", "rstudio")
+		case "windows":
+			if appData := os.Getenv("APPDATA"); appData != "" {
+				configPath = filepath.Join(appData, "RStudio")
+			}
+		}
+		if configPath != "" {
+			if info, err := os.Stat(configPath); err == nil && info.IsDir() {
+				return true
+			}
+		}
+	}
+
 	for _, p := range c.getPaths() {
 		if info, err := os.Stat(p); err == nil && info.IsDir() {
 			return true
