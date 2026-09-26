@@ -37,10 +37,12 @@ func (c *ArduinoCleaner) getPaths() []string {
 			filepath.Join(home, "Library", "Application Support", "arduino-ide", "CachedData"),
 		)
 	case "linux":
-		paths = append(paths,
-			filepath.Join(home, ".cache", "arduino"),
-			filepath.Join(home, ".config", "arduino-ide", "Cache"),
-		)
+		if cacheDir, err := os.UserCacheDir(); err == nil {
+			paths = append(paths, filepath.Join(cacheDir, "arduino"))
+		}
+		if configDir, err := os.UserConfigDir(); err == nil {
+			paths = append(paths, filepath.Join(configDir, "arduino-ide", "Cache"))
+		}
 	case "windows":
 		if localApp := os.Getenv("LOCALAPPDATA"); localApp != "" {
 			paths = append(paths, filepath.Join(localApp, "arduino"))

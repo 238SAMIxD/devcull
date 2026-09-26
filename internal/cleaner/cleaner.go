@@ -310,9 +310,12 @@ func isSafeToDelete(targetPath string) bool {
 		safeRoots = append(safeRoots, filepath.Clean(tempDir))
 	}
 
-	safeRoots = append(safeRoots, filepath.Join(cleanHome, ".config", "arduino-ide"))
-	safeRoots = append(safeRoots, filepath.Join(cleanHome, ".config", "arduino-lab-for-micropython"))
+	if configDir, err := os.UserConfigDir(); err == nil {
+		safeRoots = append(safeRoots, filepath.Join(configDir, "arduino-ide"))
+		safeRoots = append(safeRoots, filepath.Join(configDir, "arduino-lab-for-micropython"))
+	}
 	safeRoots = append(safeRoots, filepath.Join(cleanHome, "Library", "Application Support", "arduino-ide"))
+	safeRoots = append(safeRoots, filepath.Join(cleanHome, "Library", "Application Support", "arduino-lab-for-micropython"))
 
 	for _, root := range safeRoots {
 		if root == "" || root == "." {

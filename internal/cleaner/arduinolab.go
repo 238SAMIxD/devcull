@@ -30,9 +30,11 @@ func (c *ArduinoLabCleaner) getPaths() []string {
 
 	switch runtime.GOOS {
 	case "darwin":
-		paths = append(paths, filepath.Join(home, "Library", "Caches", "arduino-lab-for-micropython"))
+		paths = append(paths, filepath.Join(home, "Library", "Application Support", "arduino-lab-for-micropython", "Cache"))
 	case "linux":
-		paths = append(paths, filepath.Join(home, ".config", "arduino-lab-for-micropython", "Cache"))
+		if configDir, err := os.UserConfigDir(); err == nil {
+			paths = append(paths, filepath.Join(configDir, "arduino-lab-for-micropython", "Cache"))
+		}
 	case "windows":
 		if appData := os.Getenv("APPDATA"); appData != "" {
 			paths = append(paths, filepath.Join(appData, "arduino-lab-for-micropython", "Cache"))
