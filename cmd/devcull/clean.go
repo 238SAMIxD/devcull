@@ -64,11 +64,12 @@ var cleanCmd = &cobra.Command{
 		}
 
 		if !dryRun && !yesRun {
-			fmt.Println("Scanning...")
-			scanResults := engine.Scan(ctx, nativeTargets)
+			incScan, stopSpinner := ui.StartProgressSpinner(ctx, "Scanning pre-flight...", len(nativeTargets)+len(pluginTargets))
+			scanResults := engine.Scan(ctx, nativeTargets, incScan)
 			if ctx.Err() == nil && len(pluginTargets) > 0 {
-				scanResults = append(scanResults, engine.Scan(ctx, pluginTargets)...)
+				scanResults = append(scanResults, engine.ScanPlugins(ctx, pluginTargets, incScan)...)
 			}
+			stopSpinner()
 			
 			var totalReclaimable int64
 			var scanErr error
@@ -106,12 +107,18 @@ var cleanCmd = &cobra.Command{
 		var hasError bool
 		var successfulRuns []runStat
 
+		if len(nativeTargets) > 0 {
+			fmt.Println("\n--- Standard cleaners ---")
+		}
+
+		incNative, stopNativeSpinner := ui.StartProgressSpinner(ctx, "Cleaning standard targets...", len(nativeTargets))
 		nativeStart := time.Now()
-		nativeResults := engine.Run(ctx, nativeTargets, dryRun)
+		nativeResults := engine.Run(ctx, nativeTargets, dryRun, incNative)
 		nativeDuration := time.Since(nativeStart)
+		stopNativeSpinner()
 
 		nTotal, nHasErr, nRuns := printCleanResults(nativeResults, args, dryRun)
-		fmt.Printf("\nNative phase completed in %s. Subtotal: %s\n", nativeDuration.Round(time.Millisecond), ui.FormatBytes(nTotal))
+		fmt.Printf("\nStandard cleaners completed in %s. Subtotal: %s\n", nativeDuration.Round(time.Millisecond), ui.FormatBytes(nTotal))
 		sessionTotal += nTotal
 		if nHasErr {
 			hasError = true
@@ -122,12 +129,16 @@ var cleanCmd = &cobra.Command{
 
 		if ctx.Err() == nil && len(pluginTargets) > 0 {
 			fmt.Println("\n--- Plugins ---")
+			incPlugin, stopPluginSpinner := ui.StartProgressSpinner(ctx, "Cleaning plugins...", len(pluginTargets))
 			pluginsStart := time.Now()
-			pluginResults := engine.Run(ctx, pluginTargets, dryRun)
+
+			pluginResults := engine.RunPlugins(ctx, pluginTargets, dryRun, incPlugin)
+
 			pluginsDuration = time.Since(pluginsStart)
+			stopPluginSpinner()
 
 			pTotal, pHasErr, pRuns := printCleanResults(pluginResults, args, dryRun)
-			fmt.Printf("\nPlugin phase completed in %s. Subtotal: %s\n", pluginsDuration.Round(time.Millisecond), ui.FormatBytes(pTotal))
+			fmt.Printf("\nPlugins completed in %s. Subtotal: %s\n", pluginsDuration.Round(time.Millisecond), ui.FormatBytes(pTotal))
 			sessionTotal += pTotal
 			if pHasErr {
 				hasError = true
@@ -157,10 +168,7 @@ var cleanCmd = &cobra.Command{
 			}
 		}
 
-		fmt.Printf("⏱️  Time: Native: %s | Plugins: %s | Total: %s\n", 
-			nativeDuration.Round(time.Millisecond), 
-			pluginsDuration.Round(time.Millisecond), 
-			(nativeDuration + pluginsDuration).Round(time.Millisecond))
+		fmt.Printf("⏱️ Total Time: %s\n", (nativeDuration + pluginsDuration).Round(time.Millisecond))
 
 		if hasError {
 			os.Exit(1)

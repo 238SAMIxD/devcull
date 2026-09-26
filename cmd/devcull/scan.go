@@ -50,20 +50,24 @@ var scanCmd = &cobra.Command{
 			}
 		}
 
-		fmt.Println("🔍 Scanning developer caches...")
-
 		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 		defer stop()
 
 		var totalReclaimable int64
 		var hasError bool
 
+		if len(nativeTargets) > 0 {
+			fmt.Println("\n--- Standard cleaners ---")
+		}
+
+		incNative, stopSpinner := ui.StartProgressSpinner(ctx, "Scanning standard targets...", len(nativeTargets))
 		nativeStart := time.Now()
-		nativeResults := engine.Scan(ctx, nativeTargets)
+		nativeResults := engine.Scan(ctx, nativeTargets, incNative)
 		nativeDuration := time.Since(nativeStart)
+		stopSpinner()
 
 		nativeReclaimable, nativeHasErr := printScanResults(nativeResults, args)
-		fmt.Printf("\nNative phase completed in %s. Subtotal: %s\n", nativeDuration.Round(time.Millisecond), ui.FormatBytes(nativeReclaimable))
+		fmt.Printf("\nStandard cleaners completed in %s. Subtotal: %s\n", nativeDuration.Round(time.Millisecond), ui.FormatBytes(nativeReclaimable))
 		totalReclaimable += nativeReclaimable
 		if nativeHasErr {
 			hasError = true
@@ -73,12 +77,16 @@ var scanCmd = &cobra.Command{
 
 		if ctx.Err() == nil && len(pluginTargets) > 0 {
 			fmt.Println("\n--- Plugins ---")
+			incPlugin, stopPluginSpinner := ui.StartProgressSpinner(ctx, "Scanning plugins...", len(pluginTargets))
 			pluginsStart := time.Now()
-			pluginResults := engine.Scan(ctx, pluginTargets)
+
+			pluginResults := engine.ScanPlugins(ctx, pluginTargets, incPlugin)
+
 			pluginsDuration = time.Since(pluginsStart)
+			stopPluginSpinner()
 
 			pluginReclaimable, pluginHasErr := printScanResults(pluginResults, args)
-			fmt.Printf("\nPlugin phase completed in %s. Subtotal: %s\n", pluginsDuration.Round(time.Millisecond), ui.FormatBytes(pluginReclaimable))
+			fmt.Printf("\nPlugins completed in %s. Subtotal: %s\n", pluginsDuration.Round(time.Millisecond), ui.FormatBytes(pluginReclaimable))
 			totalReclaimable += pluginReclaimable
 			if pluginHasErr {
 				hasError = true
@@ -86,10 +94,7 @@ var scanCmd = &cobra.Command{
 		}
 
 		fmt.Printf("\n🎉 Total estimated reclaimable space: %s\n", ui.FormatBytes(totalReclaimable))
-		fmt.Printf("⏱️  Time: Native: %s | Plugins: %s | Total: %s\n", 
-			nativeDuration.Round(time.Millisecond), 
-			pluginsDuration.Round(time.Millisecond), 
-			(nativeDuration + pluginsDuration).Round(time.Millisecond))
+		fmt.Printf("⏱️ Total Time: %s\n", (nativeDuration + pluginsDuration).Round(time.Millisecond))
 		fmt.Println("Run 'devcull clean' to reclaim this space.")
 
 		if hasError {
