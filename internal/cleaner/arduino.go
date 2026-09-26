@@ -18,7 +18,7 @@ func (c *ArduinoCleaner) Category() Category {
 }
 
 func (c *ArduinoCleaner) Aliases() []string {
-	return []string{"arduino-ide", "arduino-cli", "arduino-lab"}
+	return []string{"arduino-ide", "arduino-cli"}
 }
 
 func (c *ArduinoCleaner) getPaths() []string {
