@@ -11,7 +11,7 @@ type RStudioCleaner struct{}
 
 func (c *RStudioCleaner) Name() string       { return "R Studio" }
 func (c *RStudioCleaner) Category() Category { return CategoryMath }
-func (c *RStudioCleaner) Aliases() []string  { return []string{"rstudio"} }
+func (c *RStudioCleaner) Aliases() []string  { return []string{"rstudio", "r"} }
 
 func (c *RStudioCleaner) getPaths() []string {
 	home, err := os.UserHomeDir()

@@ -119,10 +119,11 @@ func Native() []Cleaner {
 		&SublimeCleaner{},
 		&VisualStudioCleaner{},
 
-		// Scientific
+		// Math
 		&RStudioCleaner{},
 		&MatlabCleaner{},
 		&GeoGebraCleaner{},
+		&WolframCleaner{},
 	}
 }
 
@@ -466,6 +467,8 @@ func MatchesArg(cleaner Cleaner, arg string) bool {
 		return cleaner.Category() == CategoryIDE
 	case "system", "devops", "ops":
 		return cleaner.Category() == CategorySystem
+	case "math", "mathematics", "maths":
+		return cleaner.Category() == CategoryMath
 
 	case "pods":
 		return nameLower == "cocoapods"
