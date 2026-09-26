@@ -310,6 +310,7 @@ func isSafeToDelete(targetPath string) bool {
 	}
 
 	safeRoots = append(safeRoots, filepath.Join(cleanHome, ".config", "arduino-ide"))
+	safeRoots = append(safeRoots, filepath.Join(cleanHome, "Library", "Application Support", "arduino-ide"))
 
 	for _, root := range safeRoots {
 		if root == "" || root == "." {

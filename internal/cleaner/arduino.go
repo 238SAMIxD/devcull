@@ -33,6 +33,8 @@ func (c *ArduinoCleaner) getPaths() []string {
 		paths = append(paths,
 			filepath.Join(home, "Library", "Caches", "arduino"),
 			filepath.Join(home, "Library", "Caches", "cc.arduino.IDE2"),
+			filepath.Join(home, "Library", "Application Support", "arduino-ide", "Cache"),
+			filepath.Join(home, "Library", "Application Support", "arduino-ide", "CachedData"),
 		)
 	case "linux":
 		paths = append(paths,
