@@ -26,6 +26,7 @@ const (
 	CategoryApple   Category = "Apple Ecosystem"
 	CategoryIDE     Category = "IDE"
 	CategorySystem  Category = "System & DevOps"
+	CategoryMath    Category = "Math"
 )
 
 func AllCategories() []Category {
@@ -42,6 +43,7 @@ func AllCategories() []Category {
 		CategoryApple,
 		CategoryIDE,
 		CategorySystem,
+		CategoryMath,
 	}
 }
 
@@ -119,6 +121,12 @@ func Native() []Cleaner {
 		&VisualStudioCleaner{},
 		&ArduinoCleaner{},
 		&ArduinoLabCleaner{},
+
+		// Math
+		&RStudioCleaner{},
+		&MatlabCleaner{},
+		&GeoGebraCleaner{},
+		&WolframCleaner{},
 	}
 }
 
@@ -297,10 +305,17 @@ func isSafeToDelete(targetPath string) bool {
 		filepath.Join(cleanHome, ".phpbrew"),
 		filepath.Join(cleanHome, ".eclipse"),
 		filepath.Join(cleanHome, ".vscode"),
+		filepath.Join(cleanHome, ".MathWorks"),
+		filepath.Join(cleanHome, ".matlab"),
+		filepath.Join(cleanHome, ".Mathematica"),
+		filepath.Join(cleanHome, "Library", "Mathematica"),
 	)
 
 	if localAppData := os.Getenv("LOCALAPPDATA"); localAppData != "" {
 		safeRoots = append(safeRoots, filepath.Clean(localAppData))
+	}
+	if appData := os.Getenv("APPDATA"); appData != "" {
+		safeRoots = append(safeRoots, filepath.Clean(appData))
 	}
 
 	if appData := os.Getenv("APPDATA"); appData != "" {
@@ -475,6 +490,8 @@ func MatchesArg(cleaner Cleaner, arg string) bool {
 		return cleaner.Category() == CategoryIDE
 	case "system", "devops", "ops":
 		return cleaner.Category() == CategorySystem
+	case "math", "mathematics", "maths":
+		return cleaner.Category() == CategoryMath
 
 	case "pods":
 		return nameLower == "cocoapods"
