@@ -76,6 +76,7 @@ func Native() []Cleaner {
 		// System
 		&BrewCleaner{},
 		&DockerCleaner{},
+		&WingetCleaner{},
 
 		// Python
 		&PipCleaner{},
