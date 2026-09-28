@@ -303,6 +303,7 @@ func isSafeToDelete(targetPath string) bool {
 		filepath.Join(cleanHome, ".eclipse"),
 		filepath.Join(cleanHome, ".vscode"),
 		filepath.Join(cleanHome, ".MathWorks"),
+		filepath.Join(cleanHome, ".matlab"),
 		filepath.Join(cleanHome, ".Mathematica"),
 		filepath.Join(cleanHome, "Library", "Mathematica"),
 	)

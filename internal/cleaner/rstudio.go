@@ -27,8 +27,11 @@ func (c *RStudioCleaner) getPaths() []string {
 		paths = append(paths, filepath.Join(home, ".cache", "rstudio"))
 	case "windows":
 		if localAppData := os.Getenv("LOCALAPPDATA"); localAppData != "" {
-			paths = append(paths, filepath.Join(localAppData, "RStudio"))
-			paths = append(paths, filepath.Join(localAppData, "RStudio-Desktop", "ctx"))
+			paths = append(paths, filepath.Join(localAppData, "RStudio", "cache"))
+			paths = append(paths, filepath.Join(localAppData, "RStudio", "log"))
+			paths = append(paths, filepath.Join(localAppData, "RStudio", "crash-handler"))
+			paths = append(paths, filepath.Join(localAppData, "RStudio-Desktop", "cache"))
+			paths = append(paths, filepath.Join(localAppData, "RStudio-Desktop", "log"))
 		}
 	}
 	return paths

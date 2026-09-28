@@ -31,7 +31,7 @@ func (c *WolframCleaner) getPaths() []string {
 		}
 	case "windows":
 		if localAppData := os.Getenv("LOCALAPPDATA"); localAppData != "" {
-			if matches, err := filepath.Glob(filepath.Join(localAppData, "Mathematica", "FrontEnd", "* Caches")); err == nil {
+			if matches, err := filepath.Glob(filepath.Join(localAppData, "Mathematica", "FrontEnd", "*_Caches")); err == nil {
 				paths = append(paths, matches...)
 			}
 		}
