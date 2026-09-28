@@ -81,6 +81,7 @@ func Native() []Cleaner {
 		&PipCleaner{},
 		&UvCleaner{},
 		&PoetryCleaner{},
+		&CondaCleaner{},
 
 		// C/C++
 		&UnrealCleaner{},
@@ -118,6 +119,8 @@ func Native() []Cleaner {
 		&NetBeansCleaner{},
 		&SublimeCleaner{},
 		&VisualStudioCleaner{},
+		&ArduinoCleaner{},
+		&ArduinoLabCleaner{},
 
 		// Math
 		&RStudioCleaner{},
@@ -314,6 +317,23 @@ func isSafeToDelete(targetPath string) bool {
 	if appData := os.Getenv("APPDATA"); appData != "" {
 		safeRoots = append(safeRoots, filepath.Clean(appData))
 	}
+
+	if appData := os.Getenv("APPDATA"); appData != "" {
+		safeRoots = append(safeRoots, filepath.Clean(appData))
+	}
+
+	if tempDir := os.Getenv("TEMP"); tempDir != "" {
+		safeRoots = append(safeRoots, filepath.Clean(tempDir))
+	}
+
+	if configDir, err := os.UserConfigDir(); err == nil {
+		safeRoots = append(safeRoots, filepath.Join(configDir, "arduino-ide"))
+		safeRoots = append(safeRoots, filepath.Join(configDir, "arduino-lab-for-micropython"))
+	}
+	safeRoots = append(safeRoots, filepath.Join(cleanHome, "Library", "Application Support", "arduino-ide"))
+	safeRoots = append(safeRoots, filepath.Join(cleanHome, "Library", "Application Support", "arduino-lab-for-micropython"))
+	safeRoots = append(safeRoots, filepath.Join(cleanHome, "Library", "Arduino15", "cache"))
+	safeRoots = append(safeRoots, filepath.Join(cleanHome, ".arduino15", "cache"))
 
 	for _, root := range safeRoots {
 		if root == "" || root == "." {
