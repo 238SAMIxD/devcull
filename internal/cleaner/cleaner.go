@@ -79,6 +79,7 @@ func Native() []Cleaner {
 		&PipCleaner{},
 		&UvCleaner{},
 		&PoetryCleaner{},
+		&CondaCleaner{},
 
 		// C/C++
 		&UnrealCleaner{},
