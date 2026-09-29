@@ -25,7 +25,7 @@ func (b *BrewCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("brew"); err != nil {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "brew", "--version").Run(); err != nil {
 		return false
@@ -34,7 +34,7 @@ func (b *BrewCleaner) IsInstalled(ctx context.Context) bool {
 }
 
 func (b *BrewCleaner) getCachePath(ctx context.Context) (string, error) {
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "brew", "--cache").Output()
 	if err != nil {
@@ -52,36 +52,19 @@ func (b *BrewCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
+	if !isSafeToDelete(cachePath) {
+		return 0, fmt.Errorf("Homebrew cache path rejected by safety guard: %s", cachePath)
+	}
 	return dirSize(ctx, cachePath)
 }
 
 func (b *BrewCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
-	before, err := b.EstimateReclaimable(ctx)
-	if err != nil {
-		return 0, err
-	}
-
-	if dryRun {
-		return before, nil
-	}
-
-	ctx2, cancel2 := context.WithTimeout(ctx, 60*time.Second)
-	defer cancel2()
-	if err := exec.CommandContext(ctx2, "brew", "cleanup").Run(); err != nil {
-		return 0, err
-	}
-
 	cachePath, err := b.getCachePath(ctx)
 	if err != nil {
 		return 0, err
 	}
-	after, err := dirSize(ctx, cachePath)
-	if err != nil && after == 0 {
-		after = before
+	if !isSafeToDelete(cachePath) {
+		return 0, fmt.Errorf("Homebrew cache path rejected by safety guard: %s", cachePath)
 	}
-	reclaimed := before - after
-	if reclaimed < 0 {
-		reclaimed = 0
-	}
-	return reclaimed, err
+	return cleanDirs(ctx, []string{cachePath}, dryRun)
 }

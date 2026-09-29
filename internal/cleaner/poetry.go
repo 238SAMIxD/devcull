@@ -26,7 +26,7 @@ func (p *PoetryCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("poetry"); err != nil {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "poetry", "--version").Run(); err != nil {
 		return false
@@ -35,7 +35,7 @@ func (p *PoetryCleaner) IsInstalled(ctx context.Context) bool {
 }
 
 func (p *PoetryCleaner) getCachePaths(ctx context.Context) ([]string, error) {
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "poetry", "config", "cache-dir").Output()
 	if err != nil {

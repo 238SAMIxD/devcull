@@ -25,7 +25,7 @@ func (u *UvCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("uv"); err != nil {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "uv", "--version").Run(); err != nil {
 		return false
@@ -34,7 +34,7 @@ func (u *UvCleaner) IsInstalled(ctx context.Context) bool {
 }
 
 func (u *UvCleaner) getCachePath(ctx context.Context) (string, error) {
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "uv", "cache", "dir").Output()
 	if err != nil {
@@ -65,7 +65,7 @@ func (u *UvCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	ctx2, cancel2 := context.WithTimeout(ctx, 60*time.Second)
+	ctx2, cancel2 := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel2()
 	if err := exec.CommandContext(ctx2, "uv", "cache", "clean").Run(); err != nil {
 		return 0, err

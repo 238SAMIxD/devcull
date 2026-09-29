@@ -72,20 +72,14 @@ var cleanCmd = &cobra.Command{
 			stopSpinner()
 
 			var totalReclaimable int64
-			var scanErr error
 			for _, r := range scanResults {
 				if r.Err != nil {
-					scanErr = r.Err
-					break
+					fmt.Printf("⚠️ %s scan failed: %v\n", r.CleanerName, r.Err)
+					continue
 				}
 				if !r.Skipped {
 					totalReclaimable += r.Reclaimable
 				}
-			}
-
-			if scanErr != nil {
-				fmt.Printf("❌ Preflight scan failed: %v\n", scanErr)
-				os.Exit(1)
 			}
 
 			if totalReclaimable == 0 {
@@ -171,7 +165,7 @@ var cleanCmd = &cobra.Command{
 		fmt.Printf("⏱️ Total Time: %s\n", (nativeDuration + pluginsDuration).Round(time.Millisecond))
 
 		if hasError {
-			os.Exit(1)
+			return fmt.Errorf("completed with errors")
 		}
 
 		return nil

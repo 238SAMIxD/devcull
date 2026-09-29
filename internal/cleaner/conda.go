@@ -82,7 +82,7 @@ func (c *CondaCleaner) getCleanSize(ctx context.Context, dryRun bool) (int64, er
 		return 0, nil
 	}
 
-	ctx2, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 
 	args := []string{"clean", "--all", "--json"}
