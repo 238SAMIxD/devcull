@@ -330,21 +330,60 @@ func isSafeToDelete(targetPath string) bool {
 	if configDir, err := os.UserConfigDir(); err == nil {
 		safeRoots = append(safeRoots, filepath.Join(configDir, "arduino-ide"))
 		safeRoots = append(safeRoots, filepath.Join(configDir, "arduino-lab-for-micropython"))
+		safeRoots = append(safeRoots, filepath.Join(configDir, "Code", "Cache"))
+		safeRoots = append(safeRoots, filepath.Join(configDir, "Code", "CachedData"))
+		safeRoots = append(safeRoots, filepath.Join(configDir, "Code", "CachedExtensionVSIXs"))
 	}
 	safeRoots = append(safeRoots, filepath.Join(cleanHome, "Library", "Application Support", "arduino-ide"))
 	safeRoots = append(safeRoots, filepath.Join(cleanHome, "Library", "Application Support", "arduino-lab-for-micropython"))
 	safeRoots = append(safeRoots, filepath.Join(cleanHome, "Library", "Arduino15", "cache"))
 	safeRoots = append(safeRoots, filepath.Join(cleanHome, ".arduino15", "cache"))
+	safeRoots = append(safeRoots, filepath.Join(cleanHome, "Library", "Application Support", "Code", "Cache"))
+	safeRoots = append(safeRoots, filepath.Join(cleanHome, "Library", "Application Support", "Code", "CachedData"))
+	safeRoots = append(safeRoots, filepath.Join(cleanHome, "Library", "Application Support", "Code", "CachedExtensionVSIXs"))
+	safeRoots = append(safeRoots, filepath.Join(cleanHome, ".m2", "repository"))
+	safeRoots = append(safeRoots, filepath.Join(cleanHome, ".p2", "pool", ".cache"))
+	safeRoots = append(safeRoots, filepath.Join(cleanHome, "Library", "Application Support", "Epic", "UnrealEngine", "Common", "DerivedDataCache"))
+	safeRoots = append(safeRoots, filepath.Join(cleanHome, "Library", "Unity", "cache", "packages"))
+	safeRoots = append(safeRoots, filepath.Join(cleanHome, "Library", "Application Support", "UnityHub", "Downloads"))
+	safeRoots = append(safeRoots, filepath.Join(cleanHome, "fvm", "versions", "*", "bin", "cache"))
+	safeRoots = append(safeRoots, filepath.Join(cleanHome, ".pub-cache", "hosted"))
+	safeRoots = append(safeRoots, filepath.Join(cleanHome, ".pub-cache", "git"))
+	safeRoots = append(safeRoots, filepath.Join(cleanHome, ".konan"))
+	safeRoots = append(safeRoots, filepath.Join(cleanHome, ".composer", "cache"))
 
 	for _, root := range safeRoots {
 		if root == "" || root == "." {
 			continue
 		}
 		cleanRoot := filepath.Clean(root)
-		if strings.EqualFold(abs, cleanRoot) {
+
+		if !strings.ContainsAny(cleanRoot, "*?[\\") {
+			if strings.EqualFold(abs, cleanRoot) {
+				return true
+			}
+			if strings.HasPrefix(strings.ToLower(abs), strings.ToLower(cleanRoot+string(filepath.Separator))) {
+				return true
+			}
 			continue
 		}
-		if strings.HasPrefix(strings.ToLower(abs), strings.ToLower(cleanRoot+string(filepath.Separator))) {
+
+		absParts := strings.Split(abs, string(filepath.Separator))
+		patParts := strings.Split(cleanRoot, string(filepath.Separator))
+
+		if len(absParts) < len(patParts) {
+			continue
+		}
+
+		match := true
+		for i, pPart := range patParts {
+			matched, err := filepath.Match(strings.ToLower(pPart), strings.ToLower(absParts[i]))
+			if err != nil || !matched {
+				match = false
+				break
+			}
+		}
+		if match {
 			return true
 		}
 	}
