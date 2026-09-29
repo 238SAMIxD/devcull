@@ -98,6 +98,7 @@ var cleanCmd = &cobra.Command{
 		}
 
 		var sessionTotal int64
+		var hasError bool
 		var successfulRuns []runStat
 
 		if len(nativeTargets) > 0 {
@@ -110,9 +111,12 @@ var cleanCmd = &cobra.Command{
 		nativeDuration := time.Since(nativeStart)
 		stopNativeSpinner()
 
-		nTotal, nRuns := printCleanResults(nativeResults, args, dryRun)
+		nTotal, nHasErr, nRuns := printCleanResults(nativeResults, args, dryRun)
 		fmt.Printf("\nStandard cleaners completed in %s. Subtotal: %s\n", nativeDuration.Round(time.Millisecond), ui.FormatBytes(nTotal))
 		sessionTotal += nTotal
+		if nHasErr {
+			hasError = true
+		}
 		successfulRuns = append(successfulRuns, nRuns...)
 
 		var pluginsDuration time.Duration
@@ -127,9 +131,12 @@ var cleanCmd = &cobra.Command{
 			pluginsDuration = time.Since(pluginsStart)
 			stopPluginSpinner()
 
-			pTotal, pRuns := printCleanResults(pluginResults, args, dryRun)
+			pTotal, pHasErr, pRuns := printCleanResults(pluginResults, args, dryRun)
 			fmt.Printf("\nPlugins completed in %s. Subtotal: %s\n", pluginsDuration.Round(time.Millisecond), ui.FormatBytes(pTotal))
 			sessionTotal += pTotal
+			if pHasErr {
+				hasError = true
+			}
 			successfulRuns = append(successfulRuns, pRuns...)
 		}
 
@@ -141,6 +148,7 @@ var cleanCmd = &cobra.Command{
 				state, err := stats.LoadAndLock()
 				if err != nil {
 					fmt.Printf("⚠️ Failed to load stats for saving: %v\n", err)
+					hasError = true
 				} else {
 					defer state.Unlock()
 					for _, run := range successfulRuns {
@@ -148,6 +156,7 @@ var cleanCmd = &cobra.Command{
 					}
 					if err := state.Save(); err != nil {
 						fmt.Printf("⚠️ Failed to save stats: %v\n", err)
+						hasError = true
 					}
 				}
 			}
@@ -155,12 +164,17 @@ var cleanCmd = &cobra.Command{
 
 		fmt.Printf("⏱️ Total Time: %s\n", (nativeDuration + pluginsDuration).Round(time.Millisecond))
 
+		if hasError {
+			return fmt.Errorf("completed with errors")
+		}
+
 		return nil
 	},
 }
 
-func printCleanResults(results []engine.Result, args []string, dryRun bool) (int64, []runStat) {
+func printCleanResults(results []engine.Result, args []string, dryRun bool) (int64, bool, []runStat) {
 	var total int64
+	var hasError bool
 	var successfulRuns []runStat
 	hasArgs := len(args) > 0
 
@@ -187,6 +201,7 @@ func printCleanResults(results []engine.Result, args []string, dryRun bool) (int
 					fmt.Printf("   (Partially reclaimed %s)\n", ui.FormatBytes(r.Reclaimed))
 				}
 			}
+			hasError = true
 			continue
 		}
 
@@ -199,7 +214,7 @@ func printCleanResults(results []engine.Result, args []string, dryRun bool) (int
 			}
 		}
 	}
-	return total, successfulRuns
+	return total, hasError, successfulRuns
 }
 
 func init() {

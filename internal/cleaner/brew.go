@@ -3,7 +3,6 @@ package cleaner
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"os/exec"
@@ -53,35 +52,19 @@ func (b *BrewCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
+	if !isSafeToDelete(cachePath) {
+		return 0, fmt.Errorf("Homebrew cache path rejected by safety guard: %s", cachePath)
+	}
 	return dirSize(ctx, cachePath)
 }
 
 func (b *BrewCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
-	before, err := b.EstimateReclaimable(ctx)
-	if err != nil {
-		return 0, err
-	}
-
-	if dryRun {
-		return before, nil
-	}
-
 	cachePath, err := b.getCachePath(ctx)
 	if err != nil {
 		return 0, err
 	}
-
-	if err := os.RemoveAll(cachePath); err != nil {
-		return 0, err
+	if !isSafeToDelete(cachePath) {
+		return 0, fmt.Errorf("Homebrew cache path rejected by safety guard: %s", cachePath)
 	}
-
-	after, err := dirSize(ctx, cachePath)
-	if err != nil && after == 0 {
-		after = before
-	}
-	reclaimed := before - after
-	if reclaimed < 0 {
-		reclaimed = 0
-	}
-	return reclaimed, err
+	return cleanDirs(ctx, []string{cachePath}, dryRun)
 }
