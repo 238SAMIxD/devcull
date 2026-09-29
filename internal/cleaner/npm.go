@@ -25,7 +25,7 @@ func (n *NpmCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("npm"); err != nil {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "npm", "--version").Run(); err != nil {
 		return false
@@ -34,7 +34,7 @@ func (n *NpmCleaner) IsInstalled(ctx context.Context) bool {
 }
 
 func (n *NpmCleaner) getCachePath(ctx context.Context) (string, error) {
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "npm", "config", "get", "cache").Output()
 	if err != nil {
@@ -65,7 +65,7 @@ func (n *NpmCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	ctx2, cancel2 := context.WithTimeout(ctx, 60*time.Second)
+	ctx2, cancel2 := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel2()
 	if err := exec.CommandContext(ctx2, "npm", "cache", "clean", "--force").Run(); err != nil {
 		return 0, err

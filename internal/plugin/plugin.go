@@ -34,7 +34,7 @@ func (p *SubprocessCleaner) IsInstalled(ctx context.Context) bool {
 		return false
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 
 	cmdArgs := append([]string{}, p.manifest.Entrypoint[1:]...)
@@ -57,7 +57,7 @@ func (p *SubprocessCleaner) IsInstalled(ctx context.Context) bool {
 }
 
 func (p *SubprocessCleaner) EstimateReclaimable(ctx context.Context) (int64, error) {
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 
 	cmdArgs := append([]string{}, p.manifest.Entrypoint[1:]...)
@@ -91,7 +91,7 @@ func (p *SubprocessCleaner) Clean(ctx context.Context, dryRun bool) (int64, erro
 		args = append(args, "--dry-run")
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, p.manifest.Entrypoint[0], args...)

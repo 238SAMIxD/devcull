@@ -26,7 +26,7 @@ func (c *CargoCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("cargo"); err != nil {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "cargo", "--version").Run(); err != nil {
 		return false

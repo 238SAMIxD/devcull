@@ -3,6 +3,7 @@ package cleaner
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"os/exec"
@@ -25,7 +26,7 @@ func (b *BrewCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("brew"); err != nil {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "brew", "--version").Run(); err != nil {
 		return false
@@ -34,7 +35,7 @@ func (b *BrewCleaner) IsInstalled(ctx context.Context) bool {
 }
 
 func (b *BrewCleaner) getCachePath(ctx context.Context) (string, error) {
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "brew", "--cache").Output()
 	if err != nil {
@@ -65,16 +66,15 @@ func (b *BrewCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	ctx2, cancel2 := context.WithTimeout(ctx, 60*time.Second)
-	defer cancel2()
-	if err := exec.CommandContext(ctx2, "brew", "cleanup").Run(); err != nil {
-		return 0, err
-	}
-
 	cachePath, err := b.getCachePath(ctx)
 	if err != nil {
 		return 0, err
 	}
+
+	if err := os.RemoveAll(cachePath); err != nil {
+		return 0, err
+	}
+
 	after, err := dirSize(ctx, cachePath)
 	if err != nil && after == 0 {
 		after = before

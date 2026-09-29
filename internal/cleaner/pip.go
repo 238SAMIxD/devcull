@@ -41,7 +41,7 @@ func (p *PipCleaner) IsInstalled(ctx context.Context) bool {
 	if cmd == "" {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	if err := exec.CommandContext(ctx, cmd, "--version").Run(); err != nil {
 		return false
@@ -50,7 +50,7 @@ func (p *PipCleaner) IsInstalled(ctx context.Context) bool {
 }
 
 func (p *PipCleaner) getCachePath(ctx context.Context) (string, error) {
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, p.getCmd(), "cache", "dir").Output()
 	if err != nil {
@@ -81,7 +81,7 @@ func (p *PipCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	ctx2, cancel2 := context.WithTimeout(ctx, 60*time.Second)
+	ctx2, cancel2 := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel2()
 	if err := exec.CommandContext(ctx2, p.getCmd(), "cache", "purge").Run(); err != nil {
 		return 0, err

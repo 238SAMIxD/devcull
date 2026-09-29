@@ -25,7 +25,7 @@ func (p *PnpmCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("pnpm"); err != nil {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "pnpm", "--version").Run(); err != nil {
 		return false
@@ -34,7 +34,7 @@ func (p *PnpmCleaner) IsInstalled(ctx context.Context) bool {
 }
 
 func (p *PnpmCleaner) getCachePath(ctx context.Context) (string, error) {
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "pnpm", "store", "path").Output()
 	if err != nil {
@@ -65,7 +65,7 @@ func (p *PnpmCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	ctx2, cancel2 := context.WithTimeout(ctx, 60*time.Second)
+	ctx2, cancel2 := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel2()
 	if err := exec.CommandContext(ctx2, "pnpm", "store", "prune").Run(); err != nil {
 		return 0, err

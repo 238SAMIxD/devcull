@@ -27,7 +27,7 @@ func (b *BunCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("bun"); err != nil {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "bun", "--version").Run(); err != nil {
 		return false
@@ -36,7 +36,7 @@ func (b *BunCleaner) IsInstalled(ctx context.Context) bool {
 }
 
 func (b *BunCleaner) getCachePath(ctx context.Context) (string, error) {
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "bun", "pm", "cache").Output()
 	if err != nil {

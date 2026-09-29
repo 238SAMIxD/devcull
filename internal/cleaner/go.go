@@ -25,7 +25,7 @@ func (g *GoCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("go"); err != nil {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "go", "version").Run(); err != nil {
 		return false
@@ -35,14 +35,14 @@ func (g *GoCleaner) IsInstalled(ctx context.Context) bool {
 
 func (g *GoCleaner) getCachePaths(ctx context.Context) ([]string, error) {
 	var paths []string
-	ctx1, cancel1 := context.WithTimeout(ctx, 60*time.Second)
+	ctx1, cancel1 := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel1()
 	if out, err := exec.CommandContext(ctx1, "go", "env", "GOCACHE").Output(); err == nil {
 		if p := strings.TrimSpace(string(out)); p != "" {
 			paths = append(paths, p)
 		}
 	}
-	ctx2, cancel2 := context.WithTimeout(ctx, 60*time.Second)
+	ctx2, cancel2 := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel2()
 	if out, err := exec.CommandContext(ctx2, "go", "env", "GOMODCACHE").Output(); err == nil {
 		if p := strings.TrimSpace(string(out)); p != "" {
@@ -73,7 +73,7 @@ func (g *GoCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	ctx2, cancel2 := context.WithTimeout(ctx, 60*time.Second)
+	ctx2, cancel2 := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel2()
 	if err := exec.CommandContext(ctx2, "go", "clean", "-cache", "-modcache").Run(); err != nil {
 		return 0, err

@@ -25,7 +25,7 @@ func (y *YarnCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("yarn"); err != nil {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "yarn", "--version").Run(); err != nil {
 		return false
@@ -34,7 +34,7 @@ func (y *YarnCleaner) IsInstalled(ctx context.Context) bool {
 }
 
 func (y *YarnCleaner) getCachePath(ctx context.Context) (string, error) {
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	out, err := exec.CommandContext(ctx, "yarn", "cache", "dir").Output()
 	if err != nil {
@@ -65,7 +65,7 @@ func (y *YarnCleaner) Clean(ctx context.Context, dryRun bool) (int64, error) {
 		return before, nil
 	}
 
-	ctx2, cancel2 := context.WithTimeout(ctx, 60*time.Second)
+	ctx2, cancel2 := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel2()
 	if err := exec.CommandContext(ctx2, "yarn", "cache", "clean").Run(); err != nil {
 		return 0, err

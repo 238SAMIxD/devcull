@@ -25,7 +25,7 @@ func (d *DenoCleaner) IsInstalled(ctx context.Context) bool {
 	if _, err := exec.LookPath("deno"); err != nil {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	if err := exec.CommandContext(ctx, "deno", "--version").Run(); err != nil {
 		return false
